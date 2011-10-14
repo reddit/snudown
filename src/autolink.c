@@ -259,3 +259,31 @@ sd_autolink__url(size_t *rewind_p, struct buf *link, uint8_t *data, size_t offse
 	return link_end;
 }
 
+size_t
+sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t offset, size_t size)
+{
+	size_t link_end;
+
+	if (size < 3)
+		return 0;
+
+	/* make sure this / is part of /r/ */
+	if (strncasecmp((char*)data, "/r/", 3) != 0)
+		return 0;
+
+	/* the first character of a subreddit name must be a letter or digit */
+	link_end = strlen("/r/");
+	if (!isalnum(data[link_end]))
+		return 0;
+	link_end += 1;
+
+	/* consume valid characters ([A-Za-z0-9_]) until we run out */
+	while (link_end < size && (isalnum(data[link_end]) || data[link_end] == '_'))
+		link_end++;
+
+	/* make the link */
+	bufput(link, data, link_end);
+	*rewind_p = 0;
+
+	return link_end;
+}

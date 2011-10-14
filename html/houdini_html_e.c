@@ -18,8 +18,8 @@
  *
  */
 static const char HTML_ESCAPE_TABLE[] = {
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+	7, 7, 7, 7, 7, 7, 7, 7, 7, 0, 0, 7, 7, 0, 7, 7, 
+	7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 
 	0, 0, 1, 0, 0, 0, 2, 3, 0, 0, 0, 0, 0, 0, 0, 4, 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 6, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
@@ -43,7 +43,8 @@ static const char *HTML_ESCAPES[] = {
         "&#39;",
         "&#47;",
         "&lt;",
-        "&gt;"
+        "&gt;",
+        "", // throw out control characters
 };
 
 void
@@ -68,6 +69,8 @@ houdini_escape_html0(struct buf *ob, const uint8_t *src, size_t size, int secure
 		/* The forward slash is only escaped in secure mode */
 		if (src[i] == '/' && !secure) {
 			bufputc(ob, '/');
+		} else if (HTML_ESCAPE_TABLE[src[i]] == 7) {
+			/* skip control characters */
 		} else {
 			bufputs(ob, HTML_ESCAPES[esc]);
 		}

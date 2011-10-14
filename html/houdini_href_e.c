@@ -32,8 +32,8 @@
  *
  */
 static const char HREF_SAFE[] = {
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 0, 2, 2, 
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 
 	0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
@@ -71,6 +71,12 @@ houdini_escape_href(struct buf *ob, const uint8_t *src, size_t size)
 		/* escaping */
 		if (i >= size)
 			break;
+
+		/* throw out control characters */
+		if (HREF_SAFE[src[i]] == 2) {
+			i++;
+			continue;
+		}
 
 		switch (src[i]) {
 		/* amp appears all the time in URLs, but needs

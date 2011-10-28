@@ -849,6 +849,26 @@ char_autolink_url(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 	return link_len;
 }
 
+void
+deactivate_autolink(struct sd_markdown *md)
+{
+	md->active_char[':'] = 0x0;
+	md->active_char['@'] = 0x0;
+	md->active_char['w'] = 0x0;
+	md->active_char['/'] = 0x0;
+}
+
+void
+activate_autolink(struct sd_markdown *md)
+{
+	if (md->ext_flags & MKDEXT_AUTOLINK) {
+		md->active_char[':'] = MD_CHAR_AUTOLINK_URL;
+		md->active_char['@'] = MD_CHAR_AUTOLINK_EMAIL;
+		md->active_char['w'] = MD_CHAR_AUTOLINK_WWW;
+		md->active_char['/'] = MD_CHAR_AUTOLINK_SUBREDDIT;
+	}
+}
+
 /* char_link • '[': parsing a link or an image */
 static size_t
 char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
@@ -1047,9 +1067,11 @@ char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset
 
 	/* building content: img alt is escaped, link content is parsed */
 	if (txt_e > 1) {
+		deactivate_autolink(rndr);
 		content = rndr_newbuf(rndr, BUFFER_SPAN);
 		if (is_img) bufput(content, data + 1, txt_e - 1);
 		else parse_inline(content, rndr, data + 1, txt_e - 1);
+		activate_autolink(rndr);
 	}
 
 	if (link) {
@@ -2352,12 +2374,7 @@ sd_markdown_new(
 	md->active_char['\\'] = MD_CHAR_ESCAPE;
 	md->active_char['&'] = MD_CHAR_ENTITITY;
 
-	if (extensions & MKDEXT_AUTOLINK) {
-		md->active_char[':'] = MD_CHAR_AUTOLINK_URL;
-		md->active_char['@'] = MD_CHAR_AUTOLINK_EMAIL;
-		md->active_char['w'] = MD_CHAR_AUTOLINK_WWW;
-		md->active_char['/'] = MD_CHAR_AUTOLINK_SUBREDDIT;
-	}
+	activate_autolink(md);
 
 	if (extensions & MKDEXT_SUPERSCRIPT)
 		md->active_char['^'] = MD_CHAR_SUPERSCRIPT;

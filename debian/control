@@ -1,0 +1,13 @@
+Source: snudown
+Maintainer: Neil Williams <neil@reddit.com>
+Section: python
+Priority: optional
+Build-Depends: python-all-dev (>= 2.6.6-3), debhelper (>= 7)
+Standards-Version: 3.9.1
+
+Package: python-snudown
+Architecture: any
+Depends: ${misc:Depends}, ${python:Depends}, ${shlibs:Depends}
+Breaks: ${python:Breaks}
+Description: reddit's python wrapper and customization of the Sundown Markdown interpreter.
+

@@ -1,3 +1,9 @@
+snudown (1.0.1) natty; urgency=low
+
+  * new version, new package
+
+ -- Neil Williams <neil@reddit.com>  Thu, 17 Nov 2011 14:22:26 -0800
+
 snudown (1.0.0) natty; urgency=low
 
   * source package automatically created by stdeb 0.6.0+git

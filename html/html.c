@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #include "houdini.h"
 
@@ -374,23 +375,28 @@ static int
 rndr_raw_html(struct buf *ob, const struct buf *text, void *opaque)
 {
 	struct html_renderopt *options = opaque;
-
+	bool escape = false;
+	
 	if ((options->flags & HTML_SKIP_HTML) != 0)
-		return 1;
+		escape = true;
 
 	if ((options->flags & HTML_SKIP_STYLE) != 0 &&
 		sdhtml_is_tag(text->data, text->size, "style"))
-		return 1;
+		escape = true;
 
 	if ((options->flags & HTML_SKIP_LINKS) != 0 &&
 		sdhtml_is_tag(text->data, text->size, "a"))
-		return 1;
+		escape = true;
 
 	if ((options->flags & HTML_SKIP_IMAGES) != 0 &&
 		sdhtml_is_tag(text->data, text->size, "img"))
-		return 1;
+		escape = true;
 
-	bufput(ob, text->data, text->size);
+	if (escape)
+		houdini_escape_html(ob, text->data, text->size);
+	else
+		bufput(ob, text->data, text->size);
+	
 	return 1;
 }
 

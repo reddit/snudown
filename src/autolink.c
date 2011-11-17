@@ -24,11 +24,11 @@
 int
 sd_autolink_issafe(const uint8_t *link, size_t link_len)
 {
-	static const size_t valid_uris_count = 10;
+	static const size_t valid_uris_count = 13;
 	static const char *valid_uris[] = {
 		"http://", "https://", "ftp://", "mailto://",
-		"/", "steam://", "irc://", "news://", "mumble://",
-		"ssh://",
+		"/", "//", "steam://", "irc://", "news://", "mumble://",
+		"ssh://", "ircs://", "#"
 	};
 
 	size_t i;
@@ -38,7 +38,7 @@ sd_autolink_issafe(const uint8_t *link, size_t link_len)
 
 		if (link_len > len &&
 			strncasecmp((char *)link, valid_uris[i], len) == 0 &&
-			isalnum(link[len]))
+			(isalnum(link[len]) || link[len] == '#'))
 			return 1;
 	}
 

@@ -114,6 +114,7 @@ struct sd_markdown {
 	struct stack work_bufs[2];
 	unsigned int ext_flags;
 	size_t max_nesting;
+	int in_link_body;
 };
 
 /***************************
@@ -375,7 +376,6 @@ parse_inline(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t siz
 		if (end >= size) break;
 		i = end;
 
-		/* calling the trigger */
 		end = markdown_char_ptrs[(int)action](ob, rndr, data + i, i, size - i);
 		if (!end) /* no action from the callback */
 			end = i + 1;
@@ -764,7 +764,7 @@ char_autolink_www(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 	struct buf *link, *link_url, *link_text;
 	size_t link_len, rewind;
 
-	if (!rndr->cb.link)
+	if (!rndr->cb.link || rndr->in_link_body)
 		return 0;
 
 	link = rndr_newbuf(rndr, BUFFER_SPAN);
@@ -796,7 +796,7 @@ char_autolink_subreddit(struct buf *ob, struct sd_markdown *rndr, uint8_t *data,
 	struct buf *link;
 	size_t link_len, rewind;
 
-	if (!rndr->cb.autolink)
+	if (!rndr->cb.autolink || rndr->in_link_body)
 		return 0;
 
 	link = rndr_newbuf(rndr, BUFFER_SPAN);
@@ -815,7 +815,7 @@ char_autolink_email(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, siz
 	struct buf *link;
 	size_t link_len, rewind;
 
-	if (!rndr->cb.autolink)
+	if (!rndr->cb.autolink || rndr->in_link_body)
 		return 0;
 
 	link = rndr_newbuf(rndr, BUFFER_SPAN);
@@ -835,7 +835,7 @@ char_autolink_url(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 	struct buf *link;
 	size_t link_len, rewind;
 
-	if (!rndr->cb.autolink)
+	if (!rndr->cb.autolink || rndr->in_link_body)
 		return 0;
 
 	link = rndr_newbuf(rndr, BUFFER_SPAN);
@@ -847,26 +847,6 @@ char_autolink_url(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 
 	rndr_popbuf(rndr, BUFFER_SPAN);
 	return link_len;
-}
-
-void
-deactivate_autolink(struct sd_markdown *md)
-{
-	md->active_char[':'] = 0x0;
-	md->active_char['@'] = 0x0;
-	md->active_char['w'] = 0x0;
-	md->active_char['/'] = 0x0;
-}
-
-void
-activate_autolink(struct sd_markdown *md)
-{
-	if (md->ext_flags & MKDEXT_AUTOLINK) {
-		md->active_char[':'] = MD_CHAR_AUTOLINK_URL;
-		md->active_char['@'] = MD_CHAR_AUTOLINK_EMAIL;
-		md->active_char['w'] = MD_CHAR_AUTOLINK_WWW;
-		md->active_char['/'] = MD_CHAR_AUTOLINK_SUBREDDIT;
-	}
 }
 
 /* char_link • '[': parsing a link or an image */
@@ -1067,11 +1047,16 @@ char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset
 
 	/* building content: img alt is escaped, link content is parsed */
 	if (txt_e > 1) {
-		deactivate_autolink(rndr);
 		content = rndr_newbuf(rndr, BUFFER_SPAN);
-		if (is_img) bufput(content, data + 1, txt_e - 1);
-		else parse_inline(content, rndr, data + 1, txt_e - 1);
-		activate_autolink(rndr);
+		if (is_img) {
+			bufput(content, data + 1, txt_e - 1);
+		} else {
+			/* disable autolinking when parsing inline the
+			 * content of a link */
+			rndr->in_link_body = 1;
+			parse_inline(content, rndr, data + 1, txt_e - 1);
+			rndr->in_link_body = 0;
+		}
 	}
 
 	if (link) {
@@ -2379,7 +2364,12 @@ sd_markdown_new(
 	md->active_char['\\'] = MD_CHAR_ESCAPE;
 	md->active_char['&'] = MD_CHAR_ENTITITY;
 
-	activate_autolink(md);
+	if (extensions & MKDEXT_AUTOLINK) {
+		md->active_char[':'] = MD_CHAR_AUTOLINK_URL;
+		md->active_char['@'] = MD_CHAR_AUTOLINK_EMAIL;
+		md->active_char['w'] = MD_CHAR_AUTOLINK_WWW;
+		md->active_char['/'] = MD_CHAR_AUTOLINK_SUBREDDIT;
+	}
 
 	if (extensions & MKDEXT_SUPERSCRIPT)
 		md->active_char['^'] = MD_CHAR_SUPERSCRIPT;

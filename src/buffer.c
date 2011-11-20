@@ -138,7 +138,6 @@ bufprintf(struct buf *buf, const char *fmt, ...)
 		return;
 
 	buf->size += n;
-	
 }
 
 /* bufput: appends raw data to a buffer */
@@ -216,5 +215,3 @@ bufslurp(struct buf *buf, size_t len)
 	buf->size -= len;
 	memmove(buf->data, buf->data + len, buf->size);
 }
-
-

@@ -12,7 +12,7 @@ def c_files_in(directory):
 
 setup(
     name='snudown',
-    version='1.0.1',
+    version='1.0.2',
     author='Vicent Marti',
     author_email='vicent@github.com',
     license='MIT',

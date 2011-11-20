@@ -1,3 +1,11 @@
+snudown (1.0.2) natty; urgency=low
+
+  * synced up with upstream
+  * more safelink relaxation based on community requests
+  * fixed nesting unordered lists within ordered lists and vice versa
+
+ -- Neil Williams <neil@reddit.com>  Sat, 19 Nov 2011 17:16:47 -0800
+
 snudown (1.0.1) natty; urgency=low
 
   * new version, new package

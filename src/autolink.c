@@ -280,7 +280,9 @@ sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t
 	link_end += 1;
 
 	/* consume valid characters ([A-Za-z0-9_]) until we run out */
-	while (link_end < size && (isalnum(data[link_end]) || data[link_end] == '_'))
+	while (link_end < size && (isalnum(data[link_end]) ||
+								data[link_end] == '_' ||
+								data[link_end] == '+'))
 		link_end++;
 
 	/* make the link */

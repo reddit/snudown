@@ -33,6 +33,7 @@ static const int snudown_render_flags =
 	HTML_SKIP_HTML |
 	HTML_SKIP_IMAGES |
 	HTML_SAFELINK |
+    HTML_ESCAPE |
     HTML_USE_XHTML;
 
 static void

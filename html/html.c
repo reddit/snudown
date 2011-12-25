@@ -85,16 +85,12 @@ rndr_autolink(struct buf *ob, const struct buf *link, enum mkd_autolink type, vo
 
 	if ((options->flags & HTML_SAFELINK) != 0 &&
 		!sd_autolink_issafe(link->data, link->size) &&
-		type != MKDA_EMAIL && type != MKDA_REDDIT_USERNAME)
+		type != MKDA_EMAIL)
 		return 0;
 
 	BUFPUTSL(ob, "<a href=\"");
 	if (type == MKDA_EMAIL)
 		BUFPUTSL(ob, "mailto:");
-	if (type == MKDA_REDDIT_USERNAME) {
-		BUFPUTSL(ob, "/user/");
-		offset = 1;
-	}
 	escape_href(ob, link->data + offset, link->size - offset);
 
 	if (options->link_attributes) {

@@ -35,7 +35,7 @@ extern size_t
 sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t offset, size_t size);
 
 extern size_t
-sd_autolink__username(size_t *rewind_p, struct buf *link, uint8_t *data, size_t offset, size_t size, uint8_t *rndr_del);
+sd_autolink__username(size_t *rewind_p, struct buf *link, uint8_t *data, size_t offset, size_t size);
 
 #endif
 

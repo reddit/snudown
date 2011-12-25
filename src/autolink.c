@@ -292,53 +292,31 @@ sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t
 }
 
 size_t
-sd_autolink__username(size_t *rewind_p, struct buf *link, uint8_t *data, size_t offset, size_t size, uint8_t *rndr_del)
+sd_autolink__username(size_t *rewind_p, struct buf *link, uint8_t *data, size_t offset, size_t size)
 {
 	size_t link_end;
-	uint8_t tilde_count = 0;
-	
-	if (size < 1)
+
+	if (size < 6)
 		return 0;
 
-	/* make sure it starts with ~ */
-	if (data[0] != '~')
+	/* make sure this / is part of /user/ */
+	if (strncasecmp((char*)data, "/user/", 6) != 0)
 		return 0;
 
-	link_end = 1;
-	
+	/* the first letter of a username must... well, be valid, we don't care otherwise */
+	link_end = strlen("/user/");
+	if (!isalnum(data[link_end]) && data[link_end] != '_' && data[link_end] != '-')
+		return 0;
+	link_end += 1;
+
 	/* consume valid characters ([A-Za-z0-9_-]) until we run out */
 	while (link_end < size && (isalnum(data[link_end]) ||
 								data[link_end] == '_' ||
-								data[link_end] == '-' ||
-								data[link_end] == '~')) {
-		if(data[link_end] == '~') {
-			tilde_count++;
-		}
+								data[link_end] == '-'))
 		link_end++;
-	}
-	
-	if(tilde_count && (tilde_count != 4)) {
-		return 0;
-	}
-	
-	if(link_end > 5) {
-		if(data[link_end-1] == '~' && data[link_end-2] == '~') {
-			if(data[1] == '~' && data[2] == '~') {
-				*rndr_del = 1;
-			}
-		}
-	}
-	
-	if(tilde_count && !*rndr_del) {
-		return 0;
-	}
 
 	/* make the link */
-	if(*rndr_del) {
-		bufput(link, data+2, link_end-4);
-	} else {
-		bufput(link, data, link_end);
-	}
+	bufput(link, data, link_end);
 	*rewind_p = 0;
 
 	return link_end;

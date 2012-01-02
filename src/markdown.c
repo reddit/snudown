@@ -1069,8 +1069,8 @@ char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset
 	}
 
 	if (link) {
-		if(!is_img && !bufprefix(link, "time://")) { /* Check for time tag */
-			bufslurp(link, 7); /* Remove initial time:// */
+		if(!is_img && !bufprefix(link, "time:")) { /* Check for time tag */
+			bufslurp(link, strlen("time:")); /* Remove initial time: */
 			is_time = 1;
 		}
 		u_link = rndr_newbuf(rndr, BUFFER_SPAN);

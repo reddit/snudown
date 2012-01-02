@@ -261,6 +261,33 @@ sd_autolink__url(size_t *rewind_p, struct buf *link, uint8_t *data, size_t offse
 }
 
 size_t
+sd_autolink__time(size_t *rewind_p, struct buf *link, uint8_t *data, size_t offset, size_t size)
+{
+	size_t link_end, rewind = 0;
+	
+	while (rewind < offset && isalpha(data[-rewind - 1]))
+		rewind++;
+	
+	if(strncmp(data-rewind, "time://", 7))
+		return 0;
+	
+
+	if (size < 5 || data[1] != '/' || data[2] != '/')
+		return 0;
+	
+	link_end = strlen("://");
+
+	while (link_end < size && !isspace(data[link_end])) {
+		link_end++;
+	}
+	
+	bufput(link, data+3, link_end-3);
+	*rewind_p = rewind;
+
+	return link_end;
+}
+
+size_t
 sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t offset, size_t size)
 {
 	size_t link_end;

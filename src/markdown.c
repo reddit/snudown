@@ -846,6 +846,12 @@ char_autolink_url(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 	if ((link_len = sd_autolink__url(&rewind, link, data, offset, size)) > 0) {
 		ob->size -= rewind;
 		rndr->cb.autolink(ob, link, MKDA_NORMAL, rndr->opaque);
+	} else {
+		/* Attempt to test for a time "url" instead of a normal url */
+		if ((link_len = sd_autolink__time(&rewind, link, data, offset, size)) > 0) {
+			ob->size -= rewind;
+			rndr->cb.time(ob, link, NULL, rndr->opaque);
+		}
 	}
 
 	rndr_popbuf(rndr, BUFFER_SPAN);

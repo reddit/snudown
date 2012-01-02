@@ -856,7 +856,7 @@ char_autolink_url(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 static size_t
 char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
 {
-	int is_img = (offset && data[-1] == '!'), level;
+	int is_img = (offset && data[-1] == '!'), level, is_time = 0;
 	size_t i = 1, txt_e, link_b = 0, link_e = 0, title_b = 0, title_e = 0;
 	struct buf *content = 0;
 	struct buf *link = 0;
@@ -1068,6 +1068,10 @@ char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset
 	}
 
 	if (link) {
+		if(!is_img && !bufprefix(link, "time://")) { /* Check for time tag */
+			bufslurp(link, 7); /* Remove initial time:// */
+			is_time = 1;
+		}
 		u_link = rndr_newbuf(rndr, BUFFER_SPAN);
 		unscape_text(u_link, link);
 	} else {
@@ -1080,6 +1084,9 @@ char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset
 			ob->size -= 1;
 
 		ret = rndr->cb.image(ob, u_link, title, content, rndr->opaque);
+	} else if (is_time) {
+		/* Time ignores title */
+		ret = rndr->cb.time(ob, u_link, content, rndr->opaque);
 	} else {
 		ret = rndr->cb.link(ob, u_link, title, content, rndr->opaque);
 	}

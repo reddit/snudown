@@ -858,12 +858,13 @@ char_autolink_url(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 static size_t
 char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
 {
-	int is_img = (offset && data[-1] == '!'), level, is_time = 0;
+	int is_img = (offset && data[-1] == '!'), level;
 	size_t i = 1, txt_e, link_b = 0, link_e = 0, title_b = 0, title_e = 0;
 	struct buf *content = 0;
 	struct buf *link = 0;
 	struct buf *title = 0;
 	struct buf *u_link = 0;
+	size_t is_time = 0;
 	size_t org_work_size = rndr->work_bufs[BUFFER_SPAN].size;
 	int text_has_nl = 0, ret = 0;
 	int in_title = 0, qtype = 0;
@@ -1069,9 +1070,11 @@ char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset
 	}
 
 	if (link) {
-		if(!is_img && !bufprefix(link, "time:")) { /* Check for time tag */
-			bufslurp(link, strlen("time:")); /* Remove initial time: */
-			is_time = 1;
+		if(link->size > strlen("time:")) {
+			if(!is_img && !bufprefix(link, "time:")) { /* Check for time tag */
+					bufslurp(link, strlen("time:")); /* Remove initial time: */
+					is_time = 1;
+			}
 		}
 		u_link = rndr_newbuf(rndr, BUFFER_SPAN);
 		unscape_text(u_link, link);

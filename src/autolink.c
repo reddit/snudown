@@ -268,7 +268,7 @@ sd_autolink__time(size_t *rewind_p, struct buf *link, uint8_t *data, size_t offs
 	while (rewind < offset && isalpha(data[-rewind - 1]))
 		rewind++;
 	
-	if (strncmp(data-rewind, "time:", strlen("time:")))
+	if (strncmp(data - rewind, "time:", strlen("time:")))
 		return 0;
 	
 	if (size <= 2) /* The trigger ':' and at-least one character */
@@ -283,7 +283,7 @@ sd_autolink__time(size_t *rewind_p, struct buf *link, uint8_t *data, size_t offs
 	if (link_end == 1)
 		return 0;
 	
-	bufput(link, data+1, link_end-1);
+	bufput(link, data + 1, link_end - 1);
 	*rewind_p = rewind;
 	
 	return link_end;

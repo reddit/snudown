@@ -15,6 +15,7 @@
  */
 
 #include "buffer.h"
+#include "isodate.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -268,13 +269,17 @@ sd_autolink__time(size_t *rewind_p, struct buf *link, uint8_t *data, size_t offs
 	while (rewind < offset && isalpha(data[-rewind - 1]))
 		rewind++;
 	
-	if (strncmp(data - rewind, "time:", strlen("time:")))
+	if (strncmp((char*)data - rewind, "time:", strlen("time:")))
 		return 0;
 	
 	if (size <= 2) /* The trigger ':' and at-least one character */
 		return 0;
 	
 	link_end = 1; /* Skip the trigger ':' */
+	
+	if(!validateISOTime(data+1, size-1)) {
+		return 0;
+	}
 	
 	while (link_end < size && !isspace(data[link_end])) {
 		link_end++;

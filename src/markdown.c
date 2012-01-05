@@ -2102,7 +2102,7 @@ parse_table_header(
 		if (i < under_end && data[i] != '|')
 			break;
 
-		if (dashes < 3)
+		if (dashes < 1)
 			break;
 
 		i++;

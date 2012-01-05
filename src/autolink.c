@@ -290,3 +290,30 @@ sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t
 
 	return link_end;
 }
+
+size_t
+sd_autolink__username(size_t *rewind_p, struct buf *link, uint8_t *data, size_t offset, size_t size)
+{
+	size_t link_end;
+
+	if (size < 1)
+		return 0;
+
+	/* make sure it starts with ~ */
+	if (data[0] != '~')
+		return 0;
+
+	link_end = 1;
+
+	/* consume valid characters ([A-Za-z0-9_-]) until we run out */
+	while (link_end < size && (isalnum(data[link_end]) ||
+								data[link_end] == '_' ||
+								data[link_end] == '-'))
+		link_end++;
+
+	/* make the link */
+	bufput(link, data, link_end);
+	*rewind_p = 0;
+
+	return link_end;
+}

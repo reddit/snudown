@@ -59,6 +59,7 @@ struct sd_markdown;
 typedef size_t
 (*char_trigger)(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 
+static size_t char_emphasis_or_autolink_username(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_emphasis(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_linebreak(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_codespan(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
@@ -69,11 +70,13 @@ static size_t char_autolink_url(struct buf *ob, struct sd_markdown *rndr, uint8_
 static size_t char_autolink_email(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_autolink_www(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_autolink_subreddit(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
+static size_t char_autolink_username(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 static size_t char_superscript(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
 
 enum markdown_char_t {
 	MD_CHAR_NONE = 0,
+	MD_CHAR_EMPHASIS_OR_AUTOLINK_USERNAME,
 	MD_CHAR_EMPHASIS,
 	MD_CHAR_CODESPAN,
 	MD_CHAR_LINEBREAK,
@@ -85,11 +88,13 @@ enum markdown_char_t {
 	MD_CHAR_AUTOLINK_EMAIL,
 	MD_CHAR_AUTOLINK_WWW,
 	MD_CHAR_AUTOLINK_SUBREDDIT,
+	MD_CHAR_AUTOLINK_USERNAME,
 	MD_CHAR_SUPERSCRIPT,
 };
 
 static char_trigger markdown_char_ptrs[] = {
 	NULL,
+	&char_emphasis_or_autolink_username,
 	&char_emphasis,
 	&char_codespan,
 	&char_linebreak,
@@ -101,6 +106,7 @@ static char_trigger markdown_char_ptrs[] = {
 	&char_autolink_email,
 	&char_autolink_www,
 	&char_autolink_subreddit,
+	&char_autolink_username,
 	&char_superscript,
 };
 
@@ -587,6 +593,21 @@ parse_emph3(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size
 	return 0;
 }
 
+static size_t
+char_emphasis_or_autolink_username(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
+{
+	/* The size of the data buffer needs to be greater than 1 */
+	if (size < 2)
+		return 0;
+	/* Entering this function we know that data[0] == '~', now we need to figure out data[1] */
+	if (data[1] == '~')
+		return char_emphasis(ob, rndr, data, offset, size);
+	else if (isalnum(data[1]) || data[1] == '-' || data[1] == '_')
+		return char_autolink_username(ob, rndr, data, offset, size);
+	else
+		return 0;
+}
+
 /* char_emphasis • single and double emphasis parsing */
 static size_t
 char_emphasis(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
@@ -685,6 +706,14 @@ char_escape(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offs
 {
 	static const char *escape_chars = "\\`*_{}[]()#+-.!:|&<>/^~";
 	struct buf work = { 0, 0, 0, 0 };
+
+	if (size > 2) {
+		if (data[1] == '~' && data[2] == '~') {
+			bufputc(ob, data[1]);
+			bufputc(ob, data[2]);
+			return 3;
+		}
+	}
 
 	if (size > 1) {
 		if (strchr(escape_chars, data[1]) == NULL)
@@ -801,6 +830,25 @@ char_autolink_subreddit(struct buf *ob, struct sd_markdown *rndr, uint8_t *data,
 	if ((link_len = sd_autolink__subreddit(&rewind, link, data, offset, size)) > 0) {
 		ob->size -= rewind;
 		rndr->cb.autolink(ob, link, MKDA_NORMAL, rndr->opaque);
+	}
+	rndr_popbuf(rndr, BUFFER_SPAN);
+
+	return link_len;
+}
+
+static size_t
+char_autolink_username(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
+{
+	struct buf *link;
+	size_t link_len, rewind;
+
+	if (!rndr->cb.autolink || rndr->in_link_body)
+		return 0;
+
+	link = rndr_newbuf(rndr, BUFFER_SPAN);
+	if ((link_len = sd_autolink__username(&rewind, link, data, offset, size)) > 0) {
+		ob->size -= rewind;
+		rndr->cb.autolink(ob, link, MKDA_REDDIT_USERNAME, rndr->opaque);
 	}
 	rndr_popbuf(rndr, BUFFER_SPAN);
 
@@ -2372,6 +2420,11 @@ sd_markdown_new(
 		md->active_char['@'] = MD_CHAR_AUTOLINK_EMAIL;
 		md->active_char['w'] = MD_CHAR_AUTOLINK_WWW;
 		md->active_char['/'] = MD_CHAR_AUTOLINK_SUBREDDIT;
+
+		if (extensions & MKDEXT_STRIKETHROUGH)
+			md->active_char['~'] = MD_CHAR_EMPHASIS_OR_AUTOLINK_USERNAME;
+		else
+			md->active_char['~'] = MD_CHAR_AUTOLINK_USERNAME;
 	}
 
 	if (extensions & MKDEXT_SUPERSCRIPT)

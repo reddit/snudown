@@ -596,6 +596,9 @@ parse_emph3(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size
 static size_t
 char_emphasis_or_autolink_username(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
 {
+	/* The size of the data buffer needs to be greater than 1 */
+	if (size < 2)
+		return 0;
 	/* Entering this function we know that data[0] == '~', now we need to figure out data[1] */
 	if (data[1] == '~')
 		return char_emphasis(ob, rndr, data, offset, size);

@@ -292,10 +292,11 @@ sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t
 }
 
 size_t
-sd_autolink__username(size_t *rewind_p, struct buf *link, uint8_t *data, size_t offset, size_t size)
+sd_autolink__username(size_t *rewind_p, struct buf *link, uint8_t *data, size_t offset, size_t size, uint8_t *rndr_del)
 {
 	size_t link_end;
-
+	uint8_t tilde_count = 0;
+	
 	if (size < 1)
 		return 0;
 
@@ -304,15 +305,40 @@ sd_autolink__username(size_t *rewind_p, struct buf *link, uint8_t *data, size_t 
 		return 0;
 
 	link_end = 1;
-
+	
 	/* consume valid characters ([A-Za-z0-9_-]) until we run out */
 	while (link_end < size && (isalnum(data[link_end]) ||
 								data[link_end] == '_' ||
-								data[link_end] == '-'))
+								data[link_end] == '-' ||
+								data[link_end] == '~')) {
+		if(data[link_end] == '~') {
+			tilde_count++;
+		}
 		link_end++;
+	}
+	
+	if(tilde_count && (tilde_count != 4)) {
+		return 0;
+	}
+	
+	if(link_end > 5) {
+		if(data[link_end-1] == '~' && data[link_end-2] == '~') {
+			if(data[1] == '~' && data[2] == '~') {
+				*rndr_del = 1;
+			}
+		}
+	}
+	
+	if(tilde_count && !*rndr_del) {
+		return 0;
+	}
 
 	/* make the link */
-	bufput(link, data, link_end);
+	if(*rndr_del) {
+		bufput(link, data+2, link_end-4);
+	} else {
+		bufput(link, data, link_end);
+	}
 	*rewind_p = 0;
 
 	return link_end;

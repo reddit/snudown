@@ -596,16 +596,19 @@ parse_emph3(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size
 static size_t
 char_emphasis_or_autolink_username(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
 {
+	size_t r = 0;
 	/* The size of the data buffer needs to be greater than 1 */
 	if (size < 2)
 		return 0;
-	/* Entering this function we know that data[0] == '~', now we need to figure out data[1] */
-	if (data[1] == '~')
-		return char_emphasis(ob, rndr, data, offset, size);
-	else if (isalnum(data[1]) || data[1] == '-' || data[1] == '_')
-		return char_autolink_username(ob, rndr, data, offset, size);
-	else
-		return 0;
+	
+	if((data[1] != '~') || (size > 3 && data[2] == '~')) {
+		r = char_autolink_username(ob, rndr, data, offset, size);
+	}
+	
+	if (!r && data[1] == '~')
+		r = char_emphasis(ob, rndr, data, offset, size);
+	
+	return r;
 }
 
 /* char_emphasis • single and double emphasis parsing */
@@ -840,18 +843,30 @@ static size_t
 char_autolink_username(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
 {
 	struct buf *link;
+	struct buf *tmp;
+	uint8_t rndr_del = 0;
+	
 	size_t link_len, rewind;
 
 	if (!rndr->cb.autolink || rndr->in_link_body)
 		return 0;
 
 	link = rndr_newbuf(rndr, BUFFER_SPAN);
-	if ((link_len = sd_autolink__username(&rewind, link, data, offset, size)) > 0) {
+	
+	if ((link_len = sd_autolink__username(&rewind, link, data, offset, size, &rndr_del)) > 0) {
 		ob->size -= rewind;
-		rndr->cb.autolink(ob, link, MKDA_REDDIT_USERNAME, rndr->opaque);
+		if(rndr_del) {
+			tmp = rndr_newbuf(rndr, BUFFER_SPAN);
+			rndr->cb.autolink(tmp, link, MKDA_REDDIT_USERNAME, rndr->opaque);
+			rndr->cb.strikethrough(ob, tmp, rndr->opaque);
+			rndr_popbuf(rndr, BUFFER_SPAN);
+		} else {
+			rndr->cb.autolink(ob, link, MKDA_REDDIT_USERNAME, rndr->opaque);
+		}
+		
 	}
+	
 	rndr_popbuf(rndr, BUFFER_SPAN);
-
 	return link_len;
 }
 

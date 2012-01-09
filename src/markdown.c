@@ -707,6 +707,14 @@ char_escape(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offs
 	static const char *escape_chars = "\\`*_{}[]()#+-.!:|&<>/^~";
 	struct buf work = { 0, 0, 0, 0 };
 
+	if (size > 2) {
+		if (data[1] == '~' && data[2] == '~') {
+			bufputc(ob, data[1]);
+			bufputc(ob, data[2]);
+			return 3;
+		}
+	}
+
 	if (size > 1) {
 		if (strchr(escape_chars, data[1]) == NULL)
 			return 0;

@@ -1,3 +1,14 @@
+snudown (1.0.3) natty; urgency=low
+
+  * ~username auto-linking
+  * make table headers less strict
+  * correctly handle ) in link title text
+  * synced with upstream
+    * code clean-up
+    * utf-8 fixes
+
+ -- Neil Williams <neil@reddit.com>  Wed, 18 Jan 2012 15:20:35 -0800
+
 snudown (1.0.2) natty; urgency=low
 
   * synced up with upstream

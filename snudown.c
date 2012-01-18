@@ -114,5 +114,5 @@ PyMODINIT_FUNC initsnudown(void)
 	);
 
 	/* Version */
-	PyModule_AddStringConstant(module, "__version__", "1.0.2");
+	PyModule_AddStringConstant(module, "__version__", "1.0.3");
 }

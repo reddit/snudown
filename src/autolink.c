@@ -317,6 +317,10 @@ sd_autolink__username(size_t *rewind_p, struct buf *link, uint8_t *data, size_t 
 		link_end++;
 	}
 	
+	if(link_end == 1) {
+		return 0;
+	}
+	
 	if(tilde_count && (tilde_count != 4)) {
 		return 0;
 	}

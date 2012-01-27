@@ -1,3 +1,10 @@
+snudown (1.0.4) natty; urgency=low
+
+  * change username autolinking to /u/username
+  * properly handle backslash at end of message
+
+ -- Neil Williams <neil@reddit.com>  Thu, 26 Jan 2012 18:26:45 -0800
+
 snudown (1.0.3) natty; urgency=low
 
   * ~username auto-linking

@@ -299,12 +299,12 @@ sd_autolink__username(size_t *rewind_p, struct buf *link, uint8_t *data, size_t 
 	if (size < 6)
 		return 0;
 
-	/* make sure this / is part of /user/ */
-	if (strncasecmp((char*)data, "/user/", 6) != 0)
+	/* make sure this / is part of /u/ */
+	if (strncasecmp((char*)data, "/u/", 3) != 0)
 		return 0;
 
 	/* the first letter of a username must... well, be valid, we don't care otherwise */
-	link_end = strlen("/user/");
+	link_end = strlen("/u/");
 	if (!isalnum(data[link_end]) && data[link_end] != '_' && data[link_end] != '-')
 		return 0;
 	link_end += 1;

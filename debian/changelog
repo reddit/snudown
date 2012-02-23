@@ -1,3 +1,12 @@
+snudown (1.0.5) natty; urgency=low
+
+  * require a space between url and title
+  * merged upstream fixes:
+    * whitespace after tables prevent them from rendering
+    * escape html in contents of tables
+
+ -- Neil Williams <neil@reddit.com>  Thu, 23 Feb 2012 08:40:39 -0800
+
 snudown (1.0.4) natty; urgency=low
 
   * change username autolinking to /u/username

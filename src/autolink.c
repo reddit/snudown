@@ -271,17 +271,16 @@ sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t
 	/* make sure this / is part of /r/ */
 	if (strncasecmp((char*)data, "/r/", 3) != 0)
 		return 0;
+	link_end = strlen("/r/");
+
+	/* support autolinking to timereddits, /r/t:when (1 April 2012) */
+	if ( size > 5 && strncasecmp((char*)data+link_end, "t:", 2) == 0 )
+		link_end += 2;  /* Jump over the 't:' */
 
 	/* the first character of a subreddit name must be a letter or digit */
-	link_end = strlen("/r/");
 	if (!isalnum(data[link_end]))
 		return 0;
 	link_end += 1;
-
-	/* support autolinking to timereddits, /r/t:when (1 April 2012) */
-	if (strncasecmp((char*)data+(link_end-1), "t:", 2) == 0 &&
-		isalnum(data[link_end+1]) )
-		link_end ++;  /* Jump over the : */
 
 	/* consume valid characters ([A-Za-z0-9_]) until we run out */
 	while (link_end < size && (isalnum(data[link_end]) ||

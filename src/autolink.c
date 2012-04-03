@@ -288,6 +288,11 @@ sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t
 								data[link_end] == '+'))
 		link_end++;
 
+	/* valid subreddit names have at least three characters, so don't
+	 * do autolinking for anything shorter. */
+	if ( link_end < 6 )
+		return 0;
+
 	/* make the link */
 	bufput(link, data, link_end);
 	*rewind_p = 0;

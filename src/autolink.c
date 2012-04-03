@@ -273,25 +273,43 @@ sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t
 		return 0;
 	link_end = strlen("/r/");
 
-	/* support autolinking to timereddits, /r/t:when (1 April 2012) */
-	if ( size > 5 && strncasecmp((char*)data+link_end, "t:", 2) == 0 )
-		link_end += 2;  /* Jump over the 't:' */
+	do {
+		size_t start = link_end;
+		int max_length = 21;
 
-	/* the first character of a subreddit name must be a letter or digit */
-	if (!isalnum(data[link_end]))
-		return 0;
-	link_end += 1;
+		/* special case: /r/reddit.com (only subreddit containing '.'). */
+		if ( size >= link_end+10 && strncasecmp((char*)data+link_end, "reddit.com", 10) == 0 ) {
+			link_end += 10;
+			/* Make sure there are no trailing characters (don't do
+			 * any autolinking for /r/reddit.commission) */
+			max_length = 10;
+		}
 
-	/* consume valid characters ([A-Za-z0-9_]) until we run out */
-	while (link_end < size && (isalnum(data[link_end]) ||
-								data[link_end] == '_' ||
-								data[link_end] == '+'))
-		link_end++;
+		/* If not a special case, verify it begins with (t:)?[A-Za-z0-9] */
+		else {
+			/* support autolinking to timereddits, /r/t:when (1 April 2012) */
+			if ( size > link_end+2 && strncasecmp((char*)data+link_end, "t:", 2) == 0 )
+				link_end += 2;  /* Jump over the 't:' */
 
-	/* valid subreddit names have at least three characters, so don't
-	 * do autolinking for anything shorter. */
-	if ( link_end < 6 )
-		return 0;
+			/* the first character of a subreddit name must be a letter or digit */
+			if (!isalnum(data[link_end]))
+				return 0;
+			link_end += 1;
+		}
+
+		/* consume valid characters ([A-Za-z0-9_]) until we run out */
+		while (link_end < size && (isalnum(data[link_end]) ||
+							data[link_end] == '_'))
+			link_end++;
+
+		/* valid subreddit names are between 3 and 21 characters, so
+		 * don't do autolinking for anything outside this length range.
+		 * (chksrname function in reddit/.../validator.py) */
+		if ( link_end-start < 3 || link_end-start > max_length )
+			return 0;
+
+		/* If we are linking to a multireddit, continue */
+	} while ( link_end < size && data[link_end] == '+' && link_end++ );
 
 	/* make the link */
 	bufput(link, data, link_end);

@@ -302,10 +302,11 @@ sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t
 							data[link_end] == '_'))
 			link_end++;
 
-		/* valid subreddit names are between 3 and 21 characters, so
-		 * don't do autolinking for anything outside this length range.
+		/* valid subreddit names are between 3 and 21 characters, with
+		 * some subreddits having 2-character names. Don't bother with
+		 * autolinking for anything outside this length range.
 		 * (chksrname function in reddit/.../validator.py) */
-		if ( link_end-start < 3 || link_end-start > max_length )
+		if ( link_end-start < 2 || link_end-start > max_length )
 			return 0;
 
 		/* If we are linking to a multireddit, continue */

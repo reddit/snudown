@@ -472,6 +472,26 @@ rndr_tablecell(struct buf *ob, const struct buf *text, int flags, void *opaque)
 }
 
 static int
+rndr_time(struct buf *ob, const struct buf *time, const struct buf *content, void *opaque)
+{
+	if (time == NULL && time->size)
+		return 0;
+
+	if(content && content->size) {
+		BUFPUTSL(ob, "<time datetime=\"");
+		bufput(ob, time->data, time->size);
+		BUFPUTSL(ob, "\">");
+		bufput(ob, content->data, content->size);
+	} else {
+		BUFPUTSL(ob, "<time>");
+		bufput(ob, time->data, time->size);
+	}
+
+	BUFPUTSL(ob, "</time>");
+	return 1;
+}
+
+static int
 rndr_superscript(struct buf *ob, const struct buf *text, void *opaque)
 {
 	if (!text || !text->size) return 0;
@@ -574,6 +594,7 @@ sdhtml_toc_renderer(struct sd_callbacks *callbacks, struct html_renderopt *optio
 
 		NULL,
 		toc_finalize,
+		NULL,
 	};
 
 	memset(options, 0x0, sizeof(struct html_renderopt));
@@ -615,6 +636,7 @@ sdhtml_renderer(struct sd_callbacks *callbacks, struct html_renderopt *options, 
 
 		NULL,
 		NULL,
+		rndr_time,
 	};
 
 	/* Prepare the options pointer */

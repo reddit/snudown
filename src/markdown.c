@@ -850,6 +850,12 @@ char_autolink_url(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 	if ((link_len = sd_autolink__url(&rewind, link, data, offset, size)) > 0) {
 		ob->size -= rewind;
 		rndr->cb.autolink(ob, link, MKDA_NORMAL, rndr->opaque);
+	} else {
+		/* Attempt to test for a time "url" instead of a normal url */
+		if ((link_len = sd_autolink__time(&rewind, link, data, offset, size)) > 0) {
+			ob->size -= rewind;
+			rndr->cb.time(ob, link, NULL, rndr->opaque);
+		}
 	}
 
 	rndr_popbuf(rndr, BUFFER_SPAN);
@@ -866,6 +872,7 @@ char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset
 	struct buf *link = 0;
 	struct buf *title = 0;
 	struct buf *u_link = 0;
+	size_t is_time = 0;
 	size_t org_work_size = rndr->work_bufs[BUFFER_SPAN].size;
 	int text_has_nl = 0, ret = 0;
 	int in_title = 0, qtype = 0;
@@ -1072,6 +1079,14 @@ char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset
 	}
 
 	if (link) {
+		if(link->size > strlen("time:")) {
+			if(!is_img && !bufprefix(link, "time:")) { /* Check for time tag */
+				if(validateISOTime(link->data+strlen("time:"), link->size-strlen("time:"))) {
+					bufslurp(link, strlen("time:")); /* Remove initial time: */
+					is_time = 1;
+				}
+			}
+		}
 		u_link = rndr_newbuf(rndr, BUFFER_SPAN);
 		unscape_text(u_link, link);
 	} else {
@@ -1084,6 +1099,9 @@ char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset
 			ob->size -= 1;
 
 		ret = rndr->cb.image(ob, u_link, title, content, rndr->opaque);
+	} else if (is_time) {
+		/* Time ignores title */
+		ret = rndr->cb.time(ob, u_link, content, rndr->opaque);
 	} else {
 		ret = rndr->cb.link(ob, u_link, title, content, rndr->opaque);
 	}

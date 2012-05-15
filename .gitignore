@@ -1,1 +1,4 @@
 build/
+snudown.egg-info/
+*.pyc
+*.so

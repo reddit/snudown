@@ -98,7 +98,7 @@ snudown_md(PyObject *self, PyObject *args, PyObject *kwargs)
 	struct buf ib, *ob;
 	PyObject *py_result;
 	const char* result_text;
-	int renderer;
+	int renderer = 0;
 	struct sd_markdown* _sundown;
 
 	memset(&ib, 0x0, sizeof(struct buf));

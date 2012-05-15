@@ -1,4 +1,4 @@
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 
 import os
 import fnmatch
@@ -16,6 +16,7 @@ setup(
     author='Vicent Marti',
     author_email='vicent@github.com',
     license='MIT',
+    test_suite="test_snudown.test_snudown",
     ext_modules=[
         Extension(
             name='snudown', 

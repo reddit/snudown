@@ -1,0 +1,147 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+import snudown
+import unittest
+import cStringIO as StringIO
+
+
+cases = {
+    '': '',
+    'http://www.reddit.com':
+        '<p><a href="http://www.reddit.com">http://www.reddit.com</a></p>\n',
+
+    '[foo](http://en.wikipedia.org/wiki/Link_(film\))':
+        '<p><a href="http://en.wikipedia.org/wiki/Link_(film)">foo</a></p>\n',
+
+    '(http://tsfr.org)':
+        '<p>(<a href="http://tsfr.org">http://tsfr.org</a>)</p>\n',
+
+    '[A link with a /r/subreddit in it](/lol)':
+        '<p><a href="/lol">A link with a /r/subreddit in it</a></p>\n',
+
+    '[A link with a http://www.url.com in it](/lol)':
+        '<p><a href="/lol">A link with a http://www.url.com in it</a></p>\n',
+
+    '[Empty Link]()':
+        '<p>[Empty Link]()</p>\n',
+
+    'http://en.wikipedia.org/wiki/café_racer':
+        '<p><a href="http://en.wikipedia.org/wiki/caf%C3%A9_racer">http://en.wikipedia.org/wiki/café_racer</a></p>\n',
+
+    '#####################################################hi':
+        '<h6>###############################################hi</h6>\n',
+
+    '[foo](http://bar\nbar)':
+        '<p><a href="http://bar%0Abar">foo</a></p>\n',
+
+    '/r/test':
+        '<p><a href="/r/test">/r/test</a></p>\n',
+
+    'Words words /r/test words':
+        '<p>Words words <a href="/r/test">/r/test</a> words</p>\n',
+    
+    '/r/':
+        '<p>/r/</p>\n',
+
+    r'escaped \/r/test':
+        '<p>escaped /r/test</p>\n',
+
+    'ampersands http://www.google.com?test&blah':
+        '<p>ampersands <a href="http://www.google.com?test&amp;blah">http://www.google.com?test&amp;blah</a></p>\n',
+
+    '[_regular_ link with nesting](/test)':
+        '<p><a href="/test"><em>regular</em> link with nesting</a></p>\n',
+
+    ' www.a.co?with&test':
+        '<p><a href="http://www.a.co?with&amp;test">www.a.co?with&amp;test</a></p>\n',
+
+    r'Normal^superscript':
+        '<p>Normal<sup>superscript</sup></p>\n',
+
+    r'Escape\^superscript':
+        '<p>Escape^superscript</p>\n',
+
+    r'~~normal strikethrough~~':
+        '<p><del>normal strikethrough</del></p>\n',
+
+    r'\~~escaped strikethrough~~':
+        '<p>~~escaped strikethrough~~</p>\n',
+
+    'anywhere\x03, you':
+        '<p>anywhere, you</p>\n',
+
+    '[Test](//test)':
+        '<p><a href="//test">Test</a></p>\n',
+
+    '[Test](//#test)':
+        '<p><a href="//#test">Test</a></p>\n',
+
+    '[Test](#test)':
+        '<p><a href="#test">Test</a></p>\n',
+
+    '[Test](git://github.com)':
+        '<p><a href="git://github.com">Test</a></p>\n',
+
+    '[Speculation](//?)':
+        '<p><a href="//?">Speculation</a></p>\n',
+
+    '/r/subreddit_with_underscores':
+        '<p><a href="/r/subreddit_with_underscores">/r/subreddit_with_underscores</a></p>\n',
+
+    '[Test](///#test)':
+        '<p><a href="///#test">Test</a></p>\n',
+
+    '/r/multireddit+test+yay':
+        '<p><a href="/r/multireddit+test+yay">/r/multireddit+test+yay</a></p>\n',
+
+    '<test>':
+        '<p>&lt;test&gt;</p>\n',
+
+    'words_with_underscores':
+        '<p>words_with_underscores</p>\n',
+
+    'words*with*asterisks':
+        '<p>words<em>with</em>asterisks</p>\n',
+
+    '~test':
+        '<p>~test</p>\n',
+
+    '/u/test':
+        '<p><a href="/u/test">/u/test</a></p>\n',
+
+    'blah \\':
+        '<p>blah \\</p>\n',
+
+    '/r/whatever: fork':
+        '<p><a href="/r/whatever">/r/whatever</a>: fork</p>\n',
+}
+
+
+class SnudownTestCase(unittest.TestCase):
+    def runTest(self):
+        output = snudown.markdown(self.input)
+
+        for i, (a, b) in enumerate(zip(repr(self.expected_output),
+                                       repr(output))):
+            if a != b:
+                io = StringIO.StringIO()
+                print >> io, "TEST FAILED:" 
+                print >> io, "       input: %s" % repr(self.input)
+                print >> io, "    expected: %s" % repr(self.expected_output)
+                print >> io, "      actual: %s" % repr(output) 
+                print >> io, "              %s" % (' ' * i + '^')
+                self.fail(io.getvalue())
+
+
+
+def test_snudown():
+    suite = unittest.TestSuite()
+
+    for input, expected_output in cases.iteritems():
+        case = SnudownTestCase()
+        case.input = input
+        case.expected_output = expected_output
+        suite.addTest(case)
+
+    return suite

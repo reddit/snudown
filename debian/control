@@ -3,7 +3,9 @@ Maintainer: Neil Williams <neil@reddit.com>
 Section: python
 Priority: optional
 Build-Depends: python-all-dev (>= 2.6.6-3), debhelper (>= 7)
-Standards-Version: 3.9.1
+Standards-Version: 3.9.3
+Homepage: https://github.com/reddit/snudown
+Vcs-Git: git://github.com/reddit/snudown.git
 
 Package: python-snudown
 Architecture: any

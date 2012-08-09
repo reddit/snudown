@@ -5,7 +5,7 @@
 #include "html.h"
 #include "autolink.h"
 
-#define SNUDOWN_VERSION "1.0.5"
+#define SNUDOWN_VERSION "1.0.6"
 
 struct snudown_renderopt {
 	struct html_renderopt html;

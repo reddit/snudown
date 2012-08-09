@@ -1,3 +1,14 @@
+snudown (1.0.6) natty; urgency=low
+
+  * made subreddit autolinking more robust thanks to nandhp
+  * cleaned up packaging
+  * merged upstream fixes:
+    * fix blockquotes nested inside paragraphs
+    * improve parsing of continuous list items
+    * fix infinite loop parsing strikethrouhgs
+
+ -- Neil Williams <neil@reddit.com>  Thu, 09 Aug 2012 13:06:38 -0700
+
 snudown (1.0.5) natty; urgency=low
 
   * require a space between url and title

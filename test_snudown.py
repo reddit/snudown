@@ -127,6 +127,9 @@ cases = {
 
     '/r/very+clever+multireddit+reddit.com+t:fork+yay':
         '<p><a href="/r/very+clever+multireddit+reddit.com+t:fork+yay">/r/very+clever+multireddit+reddit.com+t:fork+yay</a></p>\n',
+
+    '/r/t:heatdeathoftheuniverse':
+        '<p><a href="/r/t:heatdeathoftheuniverse">/r/t:heatdeathoftheuniverse</a></p>\n',
 }
 
 

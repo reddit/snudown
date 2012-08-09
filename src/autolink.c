@@ -311,7 +311,7 @@ sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t
 
 	do {
 		size_t start = link_end;
-		int max_length = 21;
+		int max_length = 24;
 
 		/* special case: /r/reddit.com (only subreddit containing '.'). */
 		if ( size >= link_end+10 && strncasecmp((char*)data+link_end, "reddit.com", 10) == 0 ) {

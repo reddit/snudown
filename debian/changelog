@@ -1,3 +1,9 @@
+snudown (1.0.7) precise; urgency=low
+
+  * add python-setuptools to build-depends
+
+ -- Neil Williams <neil@reddit.com>  Thu, 09 Aug 2012 14:46:49 -0700
+
 snudown (1.0.6) unstable; urgency=low
 
   * made subreddit autolinking more robust thanks to nandhp

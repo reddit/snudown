@@ -86,8 +86,8 @@ cases = {
     '[Speculation](//?)':
         '<p><a href="//?">Speculation</a></p>\n',
 
-    '/r/subreddit_with_underscores':
-        '<p><a href="/r/subreddit_with_underscores">/r/subreddit_with_underscores</a></p>\n',
+    '/r/sr_with_underscores':
+        '<p><a href="/r/sr_with_underscores">/r/sr_with_underscores</a></p>\n',
 
     '[Test](///#test)':
         '<p><a href="///#test">Test</a></p>\n',

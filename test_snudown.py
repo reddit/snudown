@@ -115,6 +115,18 @@ cases = {
 
     '/r/whatever: fork':
         '<p><a href="/r/whatever">/r/whatever</a>: fork</p>\n',
+
+    '/r/t:timereddit':
+        '<p><a href="/r/t:timereddit">/r/t:timereddit</a></p>\n',
+
+    '/r/reddit.com':
+        '<p><a href="/r/reddit.com">/r/reddit.com</a></p>\n',
+
+    '/r/not.cool':
+        '<p><a href="/r/not">/r/not</a>.cool</p>\n',
+
+    '/r/very+clever+multireddit+reddit.com+t:fork+yay':
+        '<p><a href="/r/very+clever+multireddit+reddit.com+t:fork+yay">/r/very+clever+multireddit+reddit.com+t:fork+yay</a></p>\n',
 }
 
 

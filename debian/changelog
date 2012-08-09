@@ -1,4 +1,4 @@
-snudown (1.0.6) natty; urgency=low
+snudown (1.0.6) unstable; urgency=low
 
   * made subreddit autolinking more robust thanks to nandhp
   * cleaned up packaging
@@ -9,7 +9,7 @@ snudown (1.0.6) natty; urgency=low
 
  -- Neil Williams <neil@reddit.com>  Thu, 09 Aug 2012 13:06:38 -0700
 
-snudown (1.0.5) natty; urgency=low
+snudown (1.0.5) unstable; urgency=low
 
   * require a space between url and title
   * merged upstream fixes:
@@ -18,14 +18,14 @@ snudown (1.0.5) natty; urgency=low
 
  -- Neil Williams <neil@reddit.com>  Thu, 23 Feb 2012 08:40:39 -0800
 
-snudown (1.0.4) natty; urgency=low
+snudown (1.0.4) unstable; urgency=low
 
   * change username autolinking to /u/username
   * properly handle backslash at end of message
 
  -- Neil Williams <neil@reddit.com>  Thu, 26 Jan 2012 18:26:45 -0800
 
-snudown (1.0.3) natty; urgency=low
+snudown (1.0.3) unstable; urgency=low
 
   * ~username auto-linking
   * make table headers less strict
@@ -36,7 +36,7 @@ snudown (1.0.3) natty; urgency=low
 
  -- Neil Williams <neil@reddit.com>  Wed, 18 Jan 2012 15:20:35 -0800
 
-snudown (1.0.2) natty; urgency=low
+snudown (1.0.2) unstable; urgency=low
 
   * synced up with upstream
   * more safelink relaxation based on community requests
@@ -44,13 +44,13 @@ snudown (1.0.2) natty; urgency=low
 
  -- Neil Williams <neil@reddit.com>  Sat, 19 Nov 2011 17:16:47 -0800
 
-snudown (1.0.1) natty; urgency=low
+snudown (1.0.1) unstable; urgency=low
 
   * new version, new package
 
  -- Neil Williams <neil@reddit.com>  Thu, 17 Nov 2011 14:22:26 -0800
 
-snudown (1.0.0) natty; urgency=low
+snudown (1.0.0) unstable; urgency=low
 
   * source package automatically created by stdeb 0.6.0+git
 

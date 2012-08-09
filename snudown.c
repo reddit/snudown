@@ -5,6 +5,8 @@
 #include "html.h"
 #include "autolink.h"
 
+#define SNUDOWN_VERSION "1.0.5"
+
 enum snudown_renderer {
 	RENDERER_USERTEXT = 0,
 	RENDERER_WIKI,
@@ -153,5 +155,5 @@ PyMODINIT_FUNC initsnudown(void)
 	PyModule_AddIntConstant(module, "RENDERER_USERTEXT", RENDERER_USERTEXT);
 	
 	/* Version */
-	PyModule_AddStringConstant(module, "__version__", "1.0.5");
+	PyModule_AddStringConstant(module, "__version__", SNUDOWN_VERSION);
 }

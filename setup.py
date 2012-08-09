@@ -1,5 +1,6 @@
 from setuptools import setup, Extension
 
+import re
 import os
 import fnmatch
 
@@ -10,9 +11,19 @@ def c_files_in(directory):
         paths.append(os.path.join(directory, f))
     return paths
 
+
+version = None
+version_re = re.compile(r'^#define\s+SNUDOWN_VERSION\s+"([^"]+)"$')
+with open('snudown.c', 'r') as f:
+    for line in f:
+        m = version_re.match(line)
+        if m:
+            version = m.group(1)
+assert version
+
 setup(
     name='snudown',
-    version='1.0.5',
+    version=version,
     author='Vicent Marti',
     author_email='vicent@github.com',
     license='MIT',

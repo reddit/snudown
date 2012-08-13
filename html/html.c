@@ -222,10 +222,15 @@ rndr_header(struct buf *ob, const struct buf *text, int level, void *opaque)
 	if (ob->size)
 		bufputc(ob, '\n');
 
-	if (options->flags & HTML_TOC)
-		bufprintf(ob, "<h%d id=\"toc_%d\">", level, options->toc_data.header_count++);
-	else
+	if (options->flags & HTML_TOC) {
+		bufprintf(ob, "<h%d id=\"", level);
+		if (options->toc_id_prefix) {
+			bufprintf(ob, options->toc_id_prefix);
+		}
+		bufprintf(ob, "toc_%d\">", options->toc_data.header_count++);
+	} else {
 		bufprintf(ob, "<h%d>", level);
+	}
 
 	if (text) bufput(ob, text->data, text->size);
 	bufprintf(ob, "</h%d>\n", level);
@@ -382,10 +387,119 @@ rndr_image(struct buf *ob, const struct buf *link, const struct buf *title, cons
 	return 1;
 }
 
- int
+static void
+rndr_html_tag(struct buf *ob, const struct buf *text, void *opaque,
+             char* tagname, char** whitelist, int tagtype)
+{
+    size_t i, x, z, in_str = 0, seen_equals = 0, done;
+    struct buf *attr = bufnew(16);
+    char c;
+    
+    bufputc(ob, '<');
+    
+    i = 1 + strlen(tagname);
+    
+    if(tagtype == HTML_TAG_CLOSE) {
+        bufputc(ob, '/');
+        i += 1;
+    }
+    
+    bufputs(ob, tagname);
+    
+    if(tagtype != HTML_TAG_CLOSE) {
+        for(;i < text->size;i++) {
+            c = text->data[i];
+            done = 0;
+            
+            switch(c) {
+                case '>':
+                    if(seen_equals && !in_str)
+                        done = 1;
+                    else
+                        done = 2;
+                    break;
+                case '\'':
+                case '"':
+                    if(!in_str)
+                        in_str = c;
+                    else if(in_str == c)
+                        in_str = !in_str;
+                    break;
+                default:
+                    if(!in_str) {
+                        switch(c) {
+                            case ' ':
+                                if(seen_equals)
+                                    done = 1;
+                                else
+                                    done = 2;
+                                break;
+                            case '=':
+                                if(seen_equals) {
+                                    done = 2;
+                                } else {
+                                    for(z=0; whitelist[z]; z++) {
+                                        if(strlen(whitelist[z]) != attr->size)
+                                            continue;
+                                        for(x=0;x < attr->size; x++) {
+                                            if(tolower(whitelist[z][x]) != tolower(attr->data[x]))
+                                                break;
+                                        }
+                                        if(x == attr->size)
+                                            seen_equals = 1;
+                                    }
+                                    if(!seen_equals)
+                                        done = 2;
+                                }
+                                break;
+                        }
+                    }
+            }
+            
+            if(done == 1) {
+                bufputc(ob, ' ');
+                bufput(ob, attr->data, attr->size);
+            }
+            
+            if(done) {
+                seen_equals = 0;
+                in_str = 0;
+                bufreset(attr);
+            } else {
+                bufputc(attr, c);
+            }
+            
+            done = 0;
+        }
+    }
+    
+    bufrelease(attr);
+    
+    bufputc(ob, '>');
+    
+}
+
+static int
 rndr_raw_html(struct buf *ob, const struct buf *text, void *opaque)
 {
     struct html_renderopt *options = opaque;
+    char** whitelist = options->html_element_whitelist;
+    int i, tagtype;
+    
+    
+    /* Items on the whitelist ignore all other flags and just output */
+    if (((options->flags & HTML_ALLOW_ELEMENT_WHITELIST) != 0) && whitelist) {
+        for(i=0;whitelist[i];i++) {
+            tagtype = sdhtml_is_tag(text->data, text->size, whitelist[i]);
+            if(tagtype != HTML_TAG_NONE) {
+                rndr_html_tag(ob, text, opaque,
+                                whitelist[i], 
+                                options->html_attr_whitelist,
+                                tagtype);
+                return 1;
+            }
+        }
+    }
 
     /* HTML_ESCAPE overrides SKIP_HTML, SKIP_STYLE, SKIP_LINKS and SKIP_IMAGES
     * It doens't see if there are any valid tags, just escape all of them. */
@@ -516,7 +630,13 @@ toc_header(struct buf *ob, const struct buf *text, int level, void *opaque)
 		BUFPUTSL(ob,"</li>\n<li>\n");
 	}
 
-	bufprintf(ob, "<a href=\"#toc_%d\">", options->toc_data.header_count++);
+	bufprintf(ob, "<a href=\"#");
+	
+	if (options->toc_id_prefix) {
+		bufprintf(ob, options->toc_id_prefix);
+	}
+	
+	bufprintf(ob, "toc_%d\">", options->toc_data.header_count++);
 	if (text)
 		escape_html(ob, text->data, text->size);
 	BUFPUTSL(ob, "</a>\n");
@@ -531,6 +651,14 @@ toc_link(struct buf *ob, const struct buf *link, const struct buf *title, const 
 }
 
 static void
+reset_toc(struct buf *ob, void *opaque)
+{
+	struct html_renderopt *options = opaque;
+	
+	memset(&(options->toc_data), 0x0, sizeof(options->toc_data));
+}
+
+static void
 toc_finalize(struct buf *ob, void *opaque)
 {
 	struct html_renderopt *options = opaque;
@@ -539,6 +667,8 @@ toc_finalize(struct buf *ob, void *opaque)
 		BUFPUTSL(ob, "</li>\n</ul>\n");
 		options->toc_data.current_level--;
 	}
+	
+	reset_toc(ob, opaque);
 }
 
 void
@@ -577,7 +707,7 @@ sdhtml_toc_renderer(struct sd_callbacks *callbacks, struct html_renderopt *optio
 	};
 
 	memset(options, 0x0, sizeof(struct html_renderopt));
-	options->flags = HTML_TOC;
+	options->flags = HTML_TOC | HTML_SKIP_HTML;
 
 	memcpy(callbacks, &cb_default, sizeof(struct sd_callbacks));
 }
@@ -614,7 +744,7 @@ sdhtml_renderer(struct sd_callbacks *callbacks, struct html_renderopt *options, 
 		rndr_normal_text,
 
 		NULL,
-		NULL,
+		reset_toc,
 	};
 
 	/* Prepare the options pointer */

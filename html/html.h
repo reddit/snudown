@@ -32,7 +32,12 @@ struct html_renderopt {
 		int level_offset;
 	} toc_data;
 
+	char* toc_id_prefix;
+
 	unsigned int flags;
+	
+	char** html_element_whitelist;
+	char** html_attr_whitelist;
 
 	/* extra callbacks */
 	void (*link_attributes)(struct buf *ob, const struct buf *url, void *self);
@@ -49,6 +54,7 @@ typedef enum {
 	HTML_HARD_WRAP = (1 << 7),
 	HTML_USE_XHTML = (1 << 8),
 	HTML_ESCAPE = (1 << 9),
+	HTML_ALLOW_ELEMENT_WHITELIST = (1 << 10),
 } html_render_mode;
 
 typedef enum {

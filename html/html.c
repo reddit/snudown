@@ -391,7 +391,7 @@ static void
 rndr_html_tag(struct buf *ob, const struct buf *text, void *opaque,
              char* tagname, char** whitelist, int tagtype)
 {
-    size_t i, x, z, in_str = 0, seen_equals = 0, done;
+    size_t i, x, z, in_str = 0, seen_equals = 0, done, reset;
     struct buf *attr = bufnew(16);
     char c;
     
@@ -410,13 +410,16 @@ rndr_html_tag(struct buf *ob, const struct buf *text, void *opaque,
         for(;i < text->size;i++) {
             c = text->data[i];
             done = 0;
+            reset = 0;
             
             switch(c) {
                 case '>':
-                    if(seen_equals && !in_str)
+                    if(seen_equals && !in_str) {
                         done = 1;
-                    else
-                        done = 2;
+                        reset = 1;
+                    } else {
+                        reset = 1;
+                    }
                     break;
                 case '\'':
                 case '"':
@@ -429,14 +432,15 @@ rndr_html_tag(struct buf *ob, const struct buf *text, void *opaque,
                     if(!in_str) {
                         switch(c) {
                             case ' ':
-                                if(seen_equals)
+                                if(seen_equals) {
                                     done = 1;
-                                else
-                                    done = 2;
+                                    reset = 1;
+                                } else
+                                    reset = 1;
                                 break;
                             case '=':
                                 if(seen_equals) {
-                                    done = 2;
+                                    reset = 1;
                                 } else {
                                     for(z=0; whitelist[z]; z++) {
                                         if(strlen(whitelist[z]) != attr->size)
@@ -449,27 +453,25 @@ rndr_html_tag(struct buf *ob, const struct buf *text, void *opaque,
                                             seen_equals = 1;
                                     }
                                     if(!seen_equals)
-                                        done = 2;
+                                        reset = 1;
                                 }
                                 break;
                         }
                     }
             }
             
-            if(done == 1) {
+            if(done) {
                 bufputc(ob, ' ');
                 bufput(ob, attr->data, attr->size);
             }
             
-            if(done) {
+            if(reset) {
                 seen_equals = 0;
                 in_str = 0;
                 bufreset(attr);
             } else {
                 bufputc(attr, c);
             }
-            
-            done = 0;
         }
     }
     
@@ -489,7 +491,7 @@ rndr_raw_html(struct buf *ob, const struct buf *text, void *opaque)
     
     /* Items on the whitelist ignore all other flags and just output */
     if (((options->flags & HTML_ALLOW_ELEMENT_WHITELIST) != 0) && whitelist) {
-        for(i=0;whitelist[i];i++) {
+        for(i = 0; whitelist[i]; i++) {
             tagtype = sdhtml_is_tag(text->data, text->size, whitelist[i]);
             if(tagtype != HTML_TAG_NONE) {
                 rndr_html_tag(ob, text, opaque,
@@ -655,7 +657,7 @@ reset_toc(struct buf *ob, void *opaque)
 {
 	struct html_renderopt *options = opaque;
 	
-	memset(&(options->toc_data), 0x0, sizeof(options->toc_data));
+	memset(&(options->toc_data), 0, sizeof(options->toc_data));
 }
 
 static void

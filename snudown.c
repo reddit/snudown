@@ -33,7 +33,7 @@ struct module_state {
 
 static struct snudown_renderer sundown[RENDERER_COUNT];
 
-static char* html_element_whitelist[] = { "tr", "td", "table", "tbody", "thead", "tfoot", "caption", NULL };
+static char* html_element_whitelist[] = { "tr", "th", "td", "table", "tbody", "thead", "tfoot", "caption", NULL };
 static char* html_attr_whitelist[] = {"colspan", "rowspan", "cellspacing", "cellpadding", "scope", NULL};
 
 static struct module_state usertext_toc_state;
@@ -106,14 +106,16 @@ static struct sd_markdown* custom_render(struct module_state* state,
 	);
 }
 
-void init_default_render(void) {
+void init_default_render(PyObject *module) {
+	PyModule_AddIntConstant(module, "RENDERER_USERTEXT", RENDERER_USERTEXT);
 	sundown[RENDERER_USERTEXT].main_renderer = custom_render(&usertext_state, snudown_default_render_flags, snudown_default_md_flags, 0);
 	sundown[RENDERER_USERTEXT].toc_renderer = custom_render(&usertext_toc_state, snudown_default_render_flags, snudown_default_md_flags, 1);
 	sundown[RENDERER_USERTEXT].state = &usertext_state;
 	sundown[RENDERER_USERTEXT].toc_state = &usertext_toc_state;
 }
 
-void init_wiki_render(void) {
+void init_wiki_render(PyObject *module) {
+	PyModule_AddIntConstant(module, "RENDERER_WIKI", RENDERER_WIKI);
 	sundown[RENDERER_WIKI].main_renderer = custom_render(&wiki_state, snudown_wiki_render_flags, snudown_default_md_flags, 0);
 	sundown[RENDERER_WIKI].toc_renderer = custom_render(&wiki_toc_state, snudown_wiki_render_flags, snudown_default_md_flags, 1);
 	sundown[RENDERER_WIKI].state = &wiki_state;
@@ -201,11 +203,8 @@ PyMODINIT_FUNC initsnudown(void)
 	if (module == NULL)
 		return;
 	
-	init_default_render();
-	init_wiki_render();
-	
-	PyModule_AddIntConstant(module, "RENDERER_WIKI", RENDERER_WIKI);
-	PyModule_AddIntConstant(module, "RENDERER_USERTEXT", RENDERER_USERTEXT);
+	init_default_render(module);
+	init_wiki_render(module);
 	
 	/* Version */
 	PyModule_AddStringConstant(module, "__version__", SNUDOWN_VERSION);

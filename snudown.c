@@ -13,6 +13,12 @@ enum snudown_renderer_mode {
 	RENDERER_COUNT
 };
 
+enum snudown_renderer_mode {
+	RENDERER_USERTEXT = 0,
+	RENDERER_WIKI,
+	RENDERER_COUNT
+};
+
 struct snudown_renderopt {
 	struct html_renderopt html;
 	int nofollow;

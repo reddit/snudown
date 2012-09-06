@@ -1,3 +1,10 @@
+snudown (1.1.0) unstable; urgency=low
+
+  * add wiki variant of markdown syntax (allows links, and
+    some raw html)
+
+ -- Neil Williams <neil@reddit.com>  Wed, 05 Sep 2012 23:30:34 -0700
+
 snudown (1.0.7) unstable; urgency=low
 
   * add python-setuptools to build-depends

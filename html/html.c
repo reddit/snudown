@@ -225,7 +225,7 @@ rndr_header(struct buf *ob, const struct buf *text, int level, void *opaque)
 	if (options->flags & HTML_TOC) {
 		bufprintf(ob, "<h%d id=\"", level);
 		if (options->toc_id_prefix) {
-			bufprintf(ob, options->toc_id_prefix);
+			bufputs(ob, options->toc_id_prefix);
 		}
 		bufprintf(ob, "toc_%d\">", options->toc_data.header_count++);
 	} else {
@@ -634,7 +634,7 @@ toc_header(struct buf *ob, const struct buf *text, int level, void *opaque)
 	BUFPUTSL(ob, "<a href=\"#");
 
 	if (options->toc_id_prefix) {
-		bufprintf(ob, options->toc_id_prefix);
+		bufputs(ob, options->toc_id_prefix);
 	}
 
 	bufprintf(ob, "toc_%d\">", options->toc_data.header_count++);

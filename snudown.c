@@ -81,10 +81,10 @@ snudown_link_attr(struct buf *ob, const struct buf *link, void *opaque)
 	}
 }
 
-static struct sd_markdown* custom_render(struct module_state* state,
-											const unsigned int renderflags,
-											const unsigned int markdownflags,
-											int toc_renderer) {
+static struct sd_markdown* make_custom_renderer(struct module_state* state,
+												const unsigned int renderflags,
+												const unsigned int markdownflags,
+												int toc_renderer) {
 	if(toc_renderer) {
 		sdhtml_toc_renderer(&state->callbacks,
 			(struct html_renderopt *)&state->options);
@@ -106,18 +106,18 @@ static struct sd_markdown* custom_render(struct module_state* state,
 	);
 }
 
-void init_default_render(PyObject *module) {
+void init_default_renderer(PyObject *module) {
 	PyModule_AddIntConstant(module, "RENDERER_USERTEXT", RENDERER_USERTEXT);
-	sundown[RENDERER_USERTEXT].main_renderer = custom_render(&usertext_state, snudown_default_render_flags, snudown_default_md_flags, 0);
-	sundown[RENDERER_USERTEXT].toc_renderer = custom_render(&usertext_toc_state, snudown_default_render_flags, snudown_default_md_flags, 1);
+	sundown[RENDERER_USERTEXT].main_renderer = make_custom_renderer(&usertext_state, snudown_default_render_flags, snudown_default_md_flags, 0);
+	sundown[RENDERER_USERTEXT].toc_renderer = make_custom_renderer(&usertext_toc_state, snudown_default_render_flags, snudown_default_md_flags, 1);
 	sundown[RENDERER_USERTEXT].state = &usertext_state;
 	sundown[RENDERER_USERTEXT].toc_state = &usertext_toc_state;
 }
 
-void init_wiki_render(PyObject *module) {
+void init_wiki_renderer(PyObject *module) {
 	PyModule_AddIntConstant(module, "RENDERER_WIKI", RENDERER_WIKI);
-	sundown[RENDERER_WIKI].main_renderer = custom_render(&wiki_state, snudown_wiki_render_flags, snudown_default_md_flags, 0);
-	sundown[RENDERER_WIKI].toc_renderer = custom_render(&wiki_toc_state, snudown_wiki_render_flags, snudown_default_md_flags, 1);
+	sundown[RENDERER_WIKI].main_renderer = make_custom_renderer(&wiki_state, snudown_wiki_render_flags, snudown_default_md_flags, 0);
+	sundown[RENDERER_WIKI].toc_renderer = make_custom_renderer(&wiki_toc_state, snudown_wiki_render_flags, snudown_default_md_flags, 1);
 	sundown[RENDERER_WIKI].state = &wiki_state;
 	sundown[RENDERER_WIKI].toc_state = &wiki_toc_state;
 }
@@ -203,8 +203,8 @@ PyMODINIT_FUNC initsnudown(void)
 	if (module == NULL)
 		return;
 
-	init_default_render(module);
-	init_wiki_render(module);
+	init_default_renderer(module);
+	init_wiki_renderer(module);
 
 	/* Version */
 	PyModule_AddStringConstant(module, "__version__", SNUDOWN_VERSION);

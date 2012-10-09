@@ -631,7 +631,7 @@ toc_header(struct buf *ob, const struct buf *text, int level, void *opaque)
 		BUFPUTSL(ob,"</li>\n<li>\n");
 	}
 
-	bufprintf(ob, "<a href=\"#");
+	BUFPUTSL(ob, "<a href=\"#");
 
 	if (options->toc_id_prefix) {
 		bufprintf(ob, options->toc_id_prefix);

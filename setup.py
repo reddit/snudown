@@ -30,7 +30,7 @@ setup(
     test_suite="test_snudown.test_snudown",
     ext_modules=[
         Extension(
-            name='snudown', 
+            name='snudown',
             sources=['snudown.c'] + c_files_in('src/') + c_files_in('html/'),
             include_dirs=['src', 'html']
         )

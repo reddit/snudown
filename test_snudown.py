@@ -40,7 +40,7 @@ cases = {
 
     'Words words /r/test words':
         '<p>Words words <a href="/r/test">/r/test</a> words</p>\n',
-    
+
     '/r/':
         '<p>/r/</p>\n',
 
@@ -141,10 +141,10 @@ class SnudownTestCase(unittest.TestCase):
                                        repr(output))):
             if a != b:
                 io = StringIO.StringIO()
-                print >> io, "TEST FAILED:" 
+                print >> io, "TEST FAILED:"
                 print >> io, "       input: %s" % repr(self.input)
                 print >> io, "    expected: %s" % repr(self.expected_output)
-                print >> io, "      actual: %s" % repr(output) 
+                print >> io, "      actual: %s" % repr(output)
                 print >> io, "              %s" % (' ' * i + '^')
                 self.fail(io.getvalue())
 

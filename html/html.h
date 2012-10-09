@@ -35,7 +35,7 @@ struct html_renderopt {
 	char* toc_id_prefix;
 
 	unsigned int flags;
-	
+
 	char** html_element_whitelist;
 	char** html_attr_whitelist;
 

@@ -33,7 +33,7 @@ struct module_state {
 
 static struct snudown_renderer sundown[RENDERER_COUNT];
 
-static char* html_element_whitelist[] = { "tr", "th", "td", "table", "tbody", "thead", "tfoot", "caption", NULL };
+static char* html_element_whitelist[] = {"tr", "th", "td", "table", "tbody", "thead", "tfoot", "caption", NULL};
 static char* html_attr_whitelist[] = {"colspan", "rowspan", "cellspacing", "cellpadding", "scope", NULL};
 
 static struct module_state usertext_toc_state;
@@ -52,14 +52,14 @@ static const unsigned int snudown_default_md_flags =
 	MKDEXT_STRIKETHROUGH |
 	MKDEXT_TABLES;
 
-static const unsigned int snudown_default_render_flags = 
+static const unsigned int snudown_default_render_flags =
 	HTML_SKIP_HTML |
 	HTML_SKIP_IMAGES |
 	HTML_SAFELINK |
 	HTML_ESCAPE |
 	HTML_USE_XHTML;
 
-static const unsigned int snudown_wiki_render_flags = 
+static const unsigned int snudown_wiki_render_flags =
 	HTML_SKIP_HTML |
 	HTML_SAFELINK |
 	HTML_ALLOW_ELEMENT_WHITELIST |
@@ -93,11 +93,11 @@ static struct sd_markdown* custom_render(struct module_state* state,
 			(struct html_renderopt *)&state->options,
 			renderflags);
 	}
-	
+
 	state->options.html.link_attributes = &snudown_link_attr;
 	state->options.html.html_element_whitelist = html_element_whitelist;
 	state->options.html.html_attr_whitelist = html_attr_whitelist;
-	
+
 	return sd_markdown_new(
 		markdownflags,
 		16,
@@ -146,39 +146,39 @@ snudown_md(PyObject *self, PyObject *args, PyObject *kwargs)
 				&target, &toc_id_prefix, &renderer, &enable_toc)) {
 		return NULL;
 	}
-	
-	if(renderer < 0 || renderer >= RENDERER_COUNT) {
+
+	if (renderer < 0 || renderer >= RENDERER_COUNT) {
 		PyErr_SetString(PyExc_ValueError, "Invalid renderer");
 		return NULL;
 	}
-	
+
 	_snudown = sundown[renderer];
-	
+
 	struct snudown_renderopt *options = &(_snudown.state->options);
 	options->nofollow = nofollow;
 	options->target = target;
-	
+
 	/* Output buffer */
 	ob = bufnew(128);
-	
+
 	flags = options->html.flags;
-	
+
 	if (enable_toc) {
 		_snudown.toc_state->options.html.toc_id_prefix = toc_id_prefix;
 		sd_markdown_render(ob, ib.data, ib.size, _snudown.toc_renderer);
 		_snudown.toc_state->options.html.toc_id_prefix = NULL;
-		
+
 		options->html.flags |= HTML_TOC;
 	}
-	
+
 	options->html.toc_id_prefix = toc_id_prefix;
-	
+
 	/* do the magic */
 	sd_markdown_render(ob, ib.data, ib.size, _snudown.main_renderer);
-	
+
 	options->html.toc_id_prefix = NULL;
 	options->html.flags = flags;
-	
+
 	/* make a Python string */
 	result_text = "";
 	if (ob->data)
@@ -202,10 +202,10 @@ PyMODINIT_FUNC initsnudown(void)
 	module = Py_InitModule3("snudown", snudown_methods, snudown_module__doc__);
 	if (module == NULL)
 		return;
-	
+
 	init_default_render(module);
 	init_wiki_render(module);
-	
+
 	/* Version */
 	PyModule_AddStringConstant(module, "__version__", SNUDOWN_VERSION);
 }

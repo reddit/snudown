@@ -1459,12 +1459,12 @@ parse_paragraph(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t 
 
 	while (i < size) {
 		for (end = i + 1; end < size && data[end - 1] != '\n'; end++) /* empty */;
-		
+
 		if (prefix_quote(data + i, end - i) != 0) {
 			end = i;
 			break;
 		}
-		
+
 		if (is_empty(data + i, size - i))
 			break;
 

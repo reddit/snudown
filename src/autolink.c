@@ -43,7 +43,7 @@ sd_autolink_issafe(const uint8_t *link, size_t link_len)
 
 		if (link_len > len &&
 			strncasecmp((char *)link, valid_uris[i], len) == 0 &&
-			(isalnum(link[len]) || link[len] == '#' || link[len] == '/' || link[len] == '?'))
+			(isalnum(link[len]) || link[len] == '#' || link[len] == '/' || link[len] == '?' || link[len] == '['))
 			return 1;
 	}
 

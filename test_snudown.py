@@ -14,6 +14,10 @@ cases = {
     '[foo](http://en.wikipedia.org/wiki/Link_(film\))':
         '<p><a href="http://en.wikipedia.org/wiki/Link_(film)">foo</a></p>\n',
 
+    '[derp](http://[acd9:e703:498e:5d07:e5fc:d525:80a6:a51c]/~derp)':
+    '<p><a href="http://[acd9:e703:498e:5d07:e5fc:d525:80a6:a51c]/%7Ederp">derp</a></p>\n',
+
+
     '(http://tsfr.org)':
         '<p>(<a href="http://tsfr.org">http://tsfr.org</a>)</p>\n',
 

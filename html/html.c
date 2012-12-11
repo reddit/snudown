@@ -611,6 +611,7 @@ toc_header(struct buf *ob, const struct buf *text, int level, void *opaque)
 	/* set the level offset if this is the first header
 	 * we're parsing for the document */
 	if (options->toc_data.current_level == 0) {
+		BUFPUTSL(ob, "<span class=\"toc\">\n");
 		options->toc_data.level_offset = level - 1;
 	}
 	level -= options->toc_data.level_offset;
@@ -668,7 +669,7 @@ toc_finalize(struct buf *ob, void *opaque)
 		BUFPUTSL(ob, "</li>\n</ul>\n");
 		options->toc_data.current_level--;
 	}
-
+	BUFPUTSL(ob, "</span>\n");
 	reset_toc(ob, opaque);
 }
 

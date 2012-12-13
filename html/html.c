@@ -664,12 +664,15 @@ static void
 toc_finalize(struct buf *ob, void *opaque)
 {
 	struct html_renderopt *options = opaque;
-
+	bool has_toc = false;
 	while (options->toc_data.current_level > 0) {
 		BUFPUTSL(ob, "</li>\n</ul>\n");
 		options->toc_data.current_level--;
+		has_toc = true;
 	}
-	BUFPUTSL(ob, "</div>\n");
+	if(has_toc) {
+		BUFPUTSL(ob, "</div>\n");
+	}
 	reset_toc(ob, opaque);
 }
 

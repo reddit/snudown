@@ -736,6 +736,13 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offs
 	return end;
 }
 
+static size_t is_html_tag(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size) {
+	enum mkd_autolink altype = MKDA_NOT_AUTOLINK;
+	size_t end = tag_length(data, size, &altype);
+	
+	return ((end > 2) && (rndr->cb.raw_html_tag) && (!rndr->cb.autolink || altype == MKDA_NOT_AUTOLINK));
+}
+
 /* char_langle_tag • '<' when tags or autolinks are allowed */
 static size_t
 char_langle_tag(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
@@ -1453,13 +1460,27 @@ parse_htmlblock(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t 
 static size_t
 parse_paragraph(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size)
 {
-	size_t i = 0, end = 0;
+	size_t i = 0, end = 0, hit_tag;
 	int level = 0;
 	struct buf work = { data, 0, 0, 0 };
 
 	while (i < size) {
-		for (end = i + 1; end < size && data[end - 1] != '\n'; end++) /* empty */;
-
+		hit_tag = 0;
+		for (end = i + 1; end < size && data[end - 1] != '\n'; end++) {
+			if(data[end - 1] == '<' && (rndr->ext_flags & MKDEXT_HTML_INLINE)) {
+				if(is_html_tag(ob, rndr, data + (end - 1), size - (end - 1))) {
+					end = end - 1;
+					i = end;
+					hit_tag = 1;
+					break;
+				}
+			} 
+		}
+		
+		if(hit_tag) {
+			break;
+		}
+		
 		if (prefix_quote(data + i, end - i) != 0) {
 			end = i;
 			break;
@@ -2231,7 +2252,10 @@ parse_block(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size
 		else if (data[beg] == '<' && rndr->cb.blockhtml &&
 				(i = parse_htmlblock(ob, rndr, txt_data, end, 1)) != 0)
 			beg += i;
-
+		
+		else if (data[beg] == '<' && (rndr->ext_flags & MKDEXT_HTML_INLINE) &&
+				(i = char_langle_tag(ob, rndr, txt_data, beg, end)))
+			beg += i;
 		else if ((i = is_empty(txt_data, end)) != 0)
 			beg += i;
 

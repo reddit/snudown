@@ -5,7 +5,7 @@
 #include "html.h"
 #include "autolink.h"
 
-#define SNUDOWN_VERSION "1.1.2"
+#define SNUDOWN_VERSION "1.1.3"
 
 enum snudown_renderer_mode {
 	RENDERER_USERTEXT = 0,

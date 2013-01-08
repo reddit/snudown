@@ -130,6 +130,9 @@ cases = {
 
     '/r/t:heatdeathoftheuniverse':
         '<p><a href="/r/t:heatdeathoftheuniverse">/r/t:heatdeathoftheuniverse</a></p>\n',
+
+    '/r/all-minus-something':
+        '<p><a href="/r/all-minus-something">/r/all-minus-something</a></p>\n',
 }
 
 

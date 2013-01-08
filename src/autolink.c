@@ -346,7 +346,7 @@ sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t
 			return 0;
 
 		/* If we are linking to a multireddit, continue */
-	} while ( link_end < size && data[link_end] == '+' && link_end++ );
+	} while ( link_end < size && (data[link_end] == '+' || data[link_end] == '-') && link_end++ );
 
 	/* make the link */
 	bufput(link, data, link_end);

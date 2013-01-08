@@ -300,6 +300,7 @@ size_t
 sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t offset, size_t size)
 {
 	size_t link_end;
+	int is_allminus = 0;
 
 	if (size < 3)
 		return 0;
@@ -308,6 +309,9 @@ sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t
 	if (strncasecmp((char*)data, "/r/", 3) != 0)
 		return 0;
 	link_end = strlen("/r/");
+
+	if (strncasecmp((char*)data + link_end, "all-", 4) == 0)
+		is_allminus = 1;
 
 	do {
 		size_t start = link_end;
@@ -346,7 +350,7 @@ sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t
 			return 0;
 
 		/* If we are linking to a multireddit, continue */
-	} while ( link_end < size && (data[link_end] == '+' || data[link_end] == '-') && link_end++ );
+	} while ( link_end < size && (data[link_end] == '+' || (is_allminus && data[link_end] == '-')) && link_end++ );
 
 	/* make the link */
 	bufput(link, data, link_end);

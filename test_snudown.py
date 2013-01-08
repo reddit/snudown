@@ -133,6 +133,9 @@ cases = {
 
     '/r/all-minus-something':
         '<p><a href="/r/all-minus-something">/r/all-minus-something</a></p>\n',
+
+    '/r/notall-minus':
+        '<p><a href="/r/notall">/r/notall</a>-minus</p>\n',
 }
 
 

@@ -306,7 +306,7 @@ sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t
 		return 0;
 
 	/* make sure this / is part of /r/ */
-	if (strncasecmp((char*)data, "/r/", 3) != 0)
+	if (strncmp((char*)data, "/r/", 3) != 0)
 		return 0;
 	link_end = strlen("/r/");
 

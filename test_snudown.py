@@ -136,6 +136,9 @@ cases = {
 
     '/r/notall-minus':
         '<p><a href="/r/notall">/r/notall</a>-minus</p>\n',
+
+    '/R/reddit.com':
+        '<p>/R/reddit.com</p>\n',
 }
 
 

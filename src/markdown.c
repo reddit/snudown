@@ -1362,11 +1362,10 @@ prefix_oli(uint8_t *data, size_t size)
 	if (i < size && data[i] == ' ') i++;
 	if (i < size && data[i] == ' ') i++;
 
-	if (i >= size || data[i] < '0' || data[i] > '9')
+	if (i >= size || data[i] != '1')
 		return 0;
 
-	while (i < size && data[i] >= '0' && data[i] <= '9')
-		i++;
+	if (i < size && data[i] == '1') i++;
 
 	if (i + 1 >= size || data[i] != '.' || data[i + 1] != ' ')
 		return 0;

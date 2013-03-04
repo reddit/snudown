@@ -139,6 +139,12 @@ cases = {
 
     '/R/reddit.com':
         '<p>/R/reddit.com</p>\n',
+
+    '1. Ordered list':
+        '<ol>\n<li>Ordered list</li>\n</ol>\n',
+
+    '10. Not an ordered list':
+        '<p>10. Not an ordered list</p>\n',
 }
 
 

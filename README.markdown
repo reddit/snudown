@@ -1,7 +1,7 @@
 ﻿Snudown
 =======
 
-`Snudown` is a reddit-specific fork of the [Sundown](http://github.com/tanoku/sundown)
+`Snudown` is a reddit-specific fork of the [Sundown](http://github.com/vmg/sundown)
 Markdown parser used by GitHub, with Python integration added.
 
 
@@ -14,7 +14,7 @@ Run `setup.py install` to install the module.
 Thanks
 ------
 
-Many thanks to @tanoku for implementing the initial version of this fork!
+Many thanks to @vmg for implementing the initial version of this fork!
 
 
 License

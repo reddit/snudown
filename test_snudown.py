@@ -110,6 +110,28 @@ cases = {
     '/u/test':
         '<p><a href="/u/test">/u/test</a></p>\n',
 
+    '/u/test/m/test test':
+        '<p><a href="/u/test/m/test">/u/test/m/test</a> test</p>\n',
+
+    '/U/nope':
+        '<p>/U/nope</p>\n',
+
+    '/r/test/m/test test':
+        '<p><a href="/r/test/m/test">/r/test/m/test</a> test</p>\n',
+
+    '/r/test/w/test test':
+        '<p><a href="/r/test/w/test">/r/test/w/test</a> test</p>\n',
+
+    '/r/test/comments/test test':
+        '<p><a href="/r/test/comments/test">/r/test/comments/test</a> test</p>\n',
+
+    '/u/test/commentscommentscommentscommentscommentscommentscomments/test test':
+        '<p><a href="/u/test/commentscommentscommentscommentscommentscommentscomments/test">/u/test/commentscommentscommentscommentscommentscommentscomments/test</a> test</p>\n',
+
+
+    '/r/test/commentscommentscommentscommentscommentscommentscomments/test test':
+        '<p><a href="/r/test/commentscommentscommentscommentscommentscommentscomments/test">/r/test/commentscommentscommentscommentscommentscommentscomments/test</a> test</p>\n',
+
     'blah \\':
         '<p>blah \\</p>\n',
 

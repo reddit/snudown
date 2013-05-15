@@ -352,6 +352,14 @@ sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t
 		/* If we are linking to a multireddit, continue */
 	} while ( link_end < size && (data[link_end] == '+' || (is_allminus && data[link_end] == '-')) && link_end++ );
 
+	if (link_end < size && data[link_end] == '/') {
+		while (link_end < size && (isalnum(data[link_end]) ||
+									data[link_end] == '_' ||
+									data[link_end] == '/' ||
+									data[link_end] == '-'))
+			link_end++;
+	}
+
 	/* make the link */
 	bufput(link, data, link_end);
 	*rewind_p = 0;
@@ -377,9 +385,10 @@ sd_autolink__username(size_t *rewind_p, struct buf *link, uint8_t *data, size_t 
 		return 0;
 	link_end += 1;
 
-	/* consume valid characters ([A-Za-z0-9_-]) until we run out */
+	/* consume valid characters ([A-Za-z0-9_-/]) until we run out */
 	while (link_end < size && (isalnum(data[link_end]) ||
 								data[link_end] == '_' ||
+								data[link_end] == '/' ||
 								data[link_end] == '-'))
 		link_end++;
 

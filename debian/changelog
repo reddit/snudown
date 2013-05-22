@@ -1,4 +1,11 @@
-snudown (1.1.4) precise; urgency=low
+snudown (1.1.5) unstable; urgency=low
+
+  * bring path stuff into user/subreddit autolinking (multis, subpages etc.)
+  * make /u/ autolinking case sensitive
+
+ -- Neil Williams <neil@reddit.com>  Wed, 22 May 2013 16:09:31 -0700
+
+snudown (1.1.4) unstable; urgency=low
 
   * make /r/ autolinking case sensitive
 

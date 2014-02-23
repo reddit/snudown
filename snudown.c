@@ -195,17 +195,40 @@ static PyMethodDef snudown_methods[] = {
 	{NULL, NULL, 0, NULL} /* Sentinel */
 };
 
+#if PY_MAJOR_VERSION >= 3
+    static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "snudown",     /* m_name */
+        snudown_module__doc__,  /* m_doc */
+        -1,                  /* m_size */
+        snudown_methods,    /* m_methods */
+        NULL,                /* m_reload */
+        NULL,                /* m_traverse */
+        NULL,                /* m_clear */
+        NULL,                /* m_free */
+    };
+#endif
+
+#if PY_MAJOR_VERSION >= 3
+PyMODINIT_FUNC PyInit_snudown(void)
+#else
 PyMODINIT_FUNC initsnudown(void)
+#endif
 {
 	PyObject *module;
 
-	module = Py_InitModule3("snudown", snudown_methods, snudown_module__doc__);
+	#if PY_MAJOR_VERSION >= 3
+    	module = PyModule_Create(&moduledef);
+	#else
+		module = Py_InitModule3("snudown", snudown_methods, snudown_module__doc__);	    
+	#endif
 	if (module == NULL)
-		return;
+		return NULL;
 
 	init_default_renderer(module);
 	init_wiki_renderer(module);
 
 	/* Version */
 	PyModule_AddStringConstant(module, "__version__", SNUDOWN_VERSION);
+	return module;
 }

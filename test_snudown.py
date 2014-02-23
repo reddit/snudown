@@ -1,9 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import snudown
 import unittest
-import cStringIO as StringIO
+try:
+    import cStringIO as StringIO
+except ImportError:
+    from io import StringIO 
 
 
 cases = {
@@ -171,12 +175,15 @@ class SnudownTestCase(unittest.TestCase):
         for i, (a, b) in enumerate(zip(repr(self.expected_output),
                                        repr(output))):
             if a != b:
-                io = StringIO.StringIO()
-                print >> io, "TEST FAILED:"
-                print >> io, "       input: %s" % repr(self.input)
-                print >> io, "    expected: %s" % repr(self.expected_output)
-                print >> io, "      actual: %s" % repr(output)
-                print >> io, "              %s" % (' ' * i + '^')
+                try:
+                    io = StringIO.StringIO()
+                except:
+                    io = StringIO()
+                print("TEST FAILED:", file=io)
+                print("       input: %s" % repr(self.input), file=io)
+                print("    expected: %s" % repr(self.expected_output), file=io)
+                print("      actual: %s" % repr(output), file=io)
+                print("              %s" % (' ' * i + '^'), file=io)
                 self.fail(io.getvalue())
 
 
@@ -184,7 +191,7 @@ class SnudownTestCase(unittest.TestCase):
 def test_snudown():
     suite = unittest.TestSuite()
 
-    for input, expected_output in cases.iteritems():
+    for input, expected_output in cases.items():
         case = SnudownTestCase()
         case.input = input
         case.expected_output = expected_output

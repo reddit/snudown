@@ -1,3 +1,10 @@
+snudown (1.1.6) unstable; urgency=low
+
+  * add ts3server url scheme to whitelist
+  * redo html sanitization for wiki renderer
+
+ -- Neil Williams <neil@reddit.com>  Tue, 01 Apr 2014 17:12:50 -0700
+
 snudown (1.1.5) unstable; urgency=low
 
   * bring path stuff into user/subreddit autolinking (multis, subpages etc.)

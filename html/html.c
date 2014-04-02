@@ -391,94 +391,108 @@ static void
 rndr_html_tag(struct buf *ob, const struct buf *text, void *opaque,
              char* tagname, char** whitelist, int tagtype)
 {
-    size_t i, x, z, in_str = 0, seen_equals = 0, done, reset;
-    struct buf *attr = bufnew(16);
+    size_t i, x, z, in_str = 0, seen_equals = 0, done = 0, done_attr = 0, reset = 0;
+    struct buf *attr;
+    struct buf *value;
     char c;
 
     bufputc(ob, '<');
 
-    i = 1 + strlen(tagname);
-
     if(tagtype == HTML_TAG_CLOSE) {
         bufputc(ob, '/');
-        i += 1;
+        bufputs(ob, tagname);
+        bufputc(ob, '>');
+        return;
     }
 
     bufputs(ob, tagname);
+    i = 1 + strlen(tagname);
 
-    if(tagtype != HTML_TAG_CLOSE) {
-        for(;i < text->size;i++) {
-            c = text->data[i];
-            done = 0;
-            reset = 0;
+    attr = bufnew(16);
+    value = bufnew(16);
 
-            switch(c) {
-                case '>':
-                    if(seen_equals && !in_str) {
-                        done = 1;
-                        reset = 1;
-                    } else {
-                        reset = 1;
-                    }
+    for(; i < text->size && !done; i++) {
+        c = text->data[i];
+        done = 0;
+        reset = 0;
+        done_attr = 0;
+
+        switch(c) {
+            case '>':
+                done = 1;
+                break;
+            case '\'':
+            case '"':
+                if(!seen_equals) {
+                    reset = 1;
+                } else if(!in_str) {
+                    in_str = c;
+                } else if(in_str == c) {
+                    in_str = 0;
+                    done_attr = 1;
+                } else {
+                    bufputc(value, c);
+                }
+                break;
+            case ' ':
+                if (in_str) {
+                    bufputc(value, ' ');
+                } else {
+                    reset = 1;
+                }
+                break;
+            case '=':
+                if(seen_equals) {
+                    reset = 1;
                     break;
-                case '\'':
-                case '"':
-                    if(!in_str)
-                        in_str = c;
-                    else if(in_str == c)
-                        in_str = !in_str;
-                    break;
-                default:
-                    if(!in_str) {
-                        switch(c) {
-                            case ' ':
-                                if(seen_equals) {
-                                    done = 1;
-                                    reset = 1;
-                                } else
-                                    reset = 1;
-                                break;
-                            case '=':
-                                if(seen_equals) {
-                                    reset = 1;
-                                } else {
-                                    for(z=0; whitelist[z]; z++) {
-                                        if(strlen(whitelist[z]) != attr->size)
-                                            continue;
-                                        for(x=0;x < attr->size; x++) {
-                                            if(tolower(whitelist[z][x]) != tolower(attr->data[x]))
-                                                break;
-                                        }
-                                        if(x == attr->size)
-                                            seen_equals = 1;
-                                    }
-                                    if(!seen_equals)
-                                        reset = 1;
-                                }
-                                break;
-                        }
+                }
+                seen_equals = 1;
+                break;
+            default:
+                if(seen_equals && in_str || !seen_equals) {
+                    bufputc(seen_equals ? value : attr, c);
+                }
+                break;
+        }
+
+        if(done_attr) {
+            int valid = 0;
+            for(z = 0; whitelist[z]; z++) {
+                if(strlen(whitelist[z]) != attr->size) {
+                    continue;
+                }
+                for(x = 0; x < attr->size; x++) {
+                    if(tolower(whitelist[z][x]) != tolower(attr->data[x])) {
+                        break;
                     }
+                }
+                if(x == attr->size) {
+                    valid = 1;
+                    break;
+                }
             }
-
-            if(done) {
+            if(valid && value->size && attr->size) {
                 bufputc(ob, ' ');
-                bufput(ob, attr->data, attr->size);
+                escape_html(ob, attr->data, attr->size);
+                bufputs(ob, "=\"");
+                escape_html(ob, value->data, value->size);
+                bufputc(ob, '"');
             }
+            reset = 1;
+        }
 
-            if(reset) {
-                seen_equals = 0;
-                in_str = 0;
-                bufreset(attr);
-            } else {
-                bufputc(attr, c);
-            }
+        if(reset) {
+            seen_equals = 0;
+            in_str = 0;
+            bufreset(attr);
+            bufreset(value);
         }
     }
 
     bufrelease(attr);
+    bufrelease(value);
 
     bufputc(ob, '>');
-
 }
 
 static int

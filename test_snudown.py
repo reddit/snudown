@@ -163,10 +163,78 @@ cases = {
         '<p>/R/reddit.com</p>\n',
 }
 
+wiki_cases = {
+    '<table scope="foo"bar>':
+        '<p><table scope="foo"></p>\n',
+
+    '<table scope="foo"bar colspan="2">':
+        '<p><table scope="foo" colspan="2"></p>\n',
+
+    '<table scope="foo" colspan="2"bar>':
+        '<p><table scope="foo" colspan="2"></p>\n',
+
+    '<table scope="foo">':
+        '<p><table scope="foo"></p>\n',
+
+    '<table scop="foo">':
+        '<p><table></p>\n',
+
+    '<table ff= scope="foo">':
+        '<p><table scope="foo"></p>\n',
+
+    '<table colspan= scope="foo">':
+        '<p><table scope="foo"></p>\n',
+
+    '<table scope=ff"foo">':
+        '<p><table scope="foo"></p>\n',
+
+    '<table scope="foo" test="test">':
+        '<p><table scope="foo"></p>\n',
+
+    '<table scope="foo" longervalue="testing test" scope="test">':
+        '<p><table scope="foo" scope="test"></p>\n',
+
+    '<table scope=`"foo">':
+        '<p><table scope="foo"></p>\n',
+
+    '<table scope="foo bar">':
+        '<p><table scope="foo bar"></p>\n',
+
+    '<table scope=\'foo colspan="foo">':
+        '<p><table></p>\n',
+
+    '<table scope=\'foo\' colspan="foo">':
+        '<p><table scope="foo" colspan="foo"></p>\n',
+
+    '<table scope=>':
+        '<p><table></p>\n',
+
+    '<table scope= colspan="test" scope=>':
+        '<p><table colspan="test"></p>\n',
+
+    '<table colspan="\'test">':
+        '<p><table colspan="&#39;test"></p>\n',
+
+    '<table scope="foo" colspan="2">':
+        '<p><table scope="foo" colspan="2"></p>\n',
+
+    '<table scope="foo" colspan="2" ff="test">':
+        '<p><table scope="foo" colspan="2"></p>\n',
+
+    '<table ff="test" scope="foo" colspan="2" colspan=>':
+        '<p><table scope="foo" colspan="2"></p>\n',
+
+    ' <table colspan=\'\'\' a="" \' scope="foo">':
+        '<p><table scope="foo"></p>\n',
+}
 
 class SnudownTestCase(unittest.TestCase):
+    def __init__(self, renderer=snudown.RENDERER_USERTEXT):
+        self.renderer = renderer
+        unittest.TestCase.__init__(self)
+
     def runTest(self):
-        output = snudown.markdown(self.input)
+        output = snudown.markdown(self.input, renderer=self.renderer)
 
         for i, (a, b) in enumerate(zip(repr(self.expected_output),
                                        repr(output))):
@@ -183,6 +251,12 @@ class SnudownTestCase(unittest.TestCase):
 
 def test_snudown():
     suite = unittest.TestSuite()
+
+    for input, expected_output in wiki_cases.iteritems():
+        case = SnudownTestCase(renderer=snudown.RENDERER_WIKI)
+        case.input = input
+        case.expected_output = expected_output
+        suite.addTest(case)
 
     for input, expected_output in cases.iteritems():
         case = SnudownTestCase()

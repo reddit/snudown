@@ -162,6 +162,15 @@ rndr_blockquote(struct buf *ob, const struct buf *text, void *opaque)
 	BUFPUTSL(ob, "</blockquote>\n");
 }
 
+static void
+rndr_blockspoiler(struct buf *ob, const struct buf *text, void *opaque)
+{
+	if (ob->size) bufputc(ob, '\n');
+	BUFPUTSL(ob, "<blockquote class=\"spoiler\">\n");
+	if (text) bufput(ob, text->data, text->size);
+	BUFPUTSL(ob, "</blockquote>\n");
+}
+
 static int
 rndr_codespan(struct buf *ob, const struct buf *text, void *opaque)
 {
@@ -737,6 +746,7 @@ sdhtml_renderer(struct sd_callbacks *callbacks, struct html_renderopt *options, 
 	static const struct sd_callbacks cb_default = {
 		rndr_blockcode,
 		rndr_blockquote,
+		rndr_blockspoiler,
 		rndr_raw_block,
 		rndr_header,
 		rndr_hrule,

@@ -52,6 +52,14 @@ static const unsigned int snudown_default_md_flags =
 	MKDEXT_STRIKETHROUGH |
 	MKDEXT_TABLES;
 
+static const unsigned int snudown_wiki_md_flags =
+	MKDEXT_NO_INTRA_EMPHASIS |
+	MKDEXT_SUPERSCRIPT |
+	MKDEXT_AUTOLINK |
+	MKDEXT_STRIKETHROUGH |
+	MKDEXT_HTML_INLINE |
+	MKDEXT_TABLES;
+
 static const unsigned int snudown_default_render_flags =
 	HTML_SKIP_HTML |
 	HTML_SKIP_IMAGES |
@@ -116,8 +124,8 @@ void init_default_renderer(PyObject *module) {
 
 void init_wiki_renderer(PyObject *module) {
 	PyModule_AddIntConstant(module, "RENDERER_WIKI", RENDERER_WIKI);
-	sundown[RENDERER_WIKI].main_renderer = make_custom_renderer(&wiki_state, snudown_wiki_render_flags, snudown_default_md_flags, 0);
-	sundown[RENDERER_WIKI].toc_renderer = make_custom_renderer(&wiki_toc_state, snudown_wiki_render_flags, snudown_default_md_flags, 1);
+	sundown[RENDERER_WIKI].main_renderer = make_custom_renderer(&wiki_state, snudown_wiki_render_flags, snudown_wiki_md_flags, 0);
+	sundown[RENDERER_WIKI].toc_renderer = make_custom_renderer(&wiki_toc_state, snudown_wiki_render_flags, snudown_wiki_md_flags, 1);
 	sundown[RENDERER_WIKI].state = &wiki_state;
 	sundown[RENDERER_WIKI].toc_state = &wiki_toc_state;
 }

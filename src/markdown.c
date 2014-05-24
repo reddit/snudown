@@ -403,6 +403,9 @@ find_emph_char(uint8_t *data, size_t size, uint8_t c)
 		if (i == size)
 			return 0;
 
+		if (i - 1 > size && c == '<' && data[i] == c && data[i - 1] == '!')
+			return i;
+
 		if (data[i] == c)
 			return i;
 
@@ -591,6 +594,37 @@ parse_emph3(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size
 	return 0;
 }
 
+/* parse_spoilerspan • parsing spoiler emphase */
+static size_t
+parse_spoilerspan(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size, uint8_t c)
+{
+	int (*render_method)(struct buf *ob, const struct buf *text, void *opaque);
+	size_t i = 0, len;
+	struct buf *work = 0;
+	int r;
+
+	render_method = rndr->cb.spoilerspan;
+
+	if (!render_method)
+		return 0;
+
+	while (i < size) {
+		len = find_emph_char(data + i, size - i, '<');
+		if (!len) return 0;
+		i += len;
+
+		if (i < size && data[i] == '<' && data[i - 1] == '!' && i && !_isspace(data[i - 2])) {
+			work = rndr_newbuf(rndr, BUFFER_SPAN);
+			parse_inline(work, rndr, data, i - 1);
+			r = render_method(ob, work, rndr->opaque);
+			rndr_popbuf(rndr, BUFFER_SPAN);
+			return r ? i + 1 : 0;
+		}
+		i++;
+	}
+	return 0;
+}
+
 /* char_emphasis • single and double emphasis parsing */
 static size_t
 char_emphasis(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
@@ -598,24 +632,31 @@ char_emphasis(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t of
 	uint8_t c = data[0];
 	size_t ret;
 
+	if (size > 3 && c == '>' && data[1] == '!') {
+		if (_isspace(data[2]) || (ret = parse_spoilerspan(ob, rndr, data + 2, size - 2, c)) == 0)
+			return 0;
+
+		return ret + 2;
+	}
+
 	if (size > 2 && data[1] != c) {
 		/* whitespace cannot follow an opening emphasis;
 		 * strikethrough only takes two characters '~~' */
-		if (c == '~' || _isspace(data[1]) || (ret = parse_emph1(ob, rndr, data + 1, size - 1, c)) == 0)
+		if (c == '~' || c == '>' || _isspace(data[1]) || (ret = parse_emph1(ob, rndr, data + 1, size - 1, c)) == 0)
 			return 0;
 
 		return ret + 1;
 	}
 
 	if (size > 3 && data[1] == c && data[2] != c) {
-		if (_isspace(data[2]) || (ret = parse_emph2(ob, rndr, data + 2, size - 2, c)) == 0)
+		if (c == '>' || _isspace(data[2]) || (ret = parse_emph2(ob, rndr, data + 2, size - 2, c)) == 0)
 			return 0;
 
 		return ret + 2;
 	}
 
 	if (size > 4 && data[1] == c && data[2] == c && data[3] != c) {
-		if (c == '~' || _isspace(data[3]) || (ret = parse_emph3(ob, rndr, data + 3, size - 3, c)) == 0)
+		if (c == '~' || c == '>' || _isspace(data[3]) || (ret = parse_emph3(ob, rndr, data + 3, size - 3, c)) == 0)
 			return 0;
 
 		return ret + 3;
@@ -1351,7 +1392,21 @@ prefix_blockspoiler(uint8_t *data, size_t size)
 	if (i < size && data[i] == ' ') i++;
 	if (i < size && data[i] == ' ') i++;
 
-	if ((i < size && data[i] == '>') && (i + 1 < size && data[i + 1] == '!')) {
+	if (i + 1 < size && data[i] == '>' && data[i + 1] == '!') {
+		size_t tmp_i = 0;
+
+		tmp_i = i + 2;
+
+		while (tmp_i < size) {
+			if (data[tmp_i] == '!' && data[tmp_i - 1] == '>')
+				break;
+
+			if (data[tmp_i] == '!' && data[tmp_i + 1] == '<' && !_isspace(data[tmp_i - 1]) && i + 2 < size && !_isspace(data[i + 2]))
+				return 0;
+
+			tmp_i++;
+		}
+
 		if (i + 2 < size && data[i + 2] == ' ')
 			return i + 3;
 
@@ -2510,6 +2565,7 @@ sd_markdown_new(
 		md->active_char['_'] = MD_CHAR_EMPHASIS;
 		if (extensions & MKDEXT_STRIKETHROUGH)
 			md->active_char['~'] = MD_CHAR_EMPHASIS;
+		md->active_char['>'] = MD_CHAR_EMPHASIS;
 	}
 
 	if (md->cb.codespan)

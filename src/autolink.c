@@ -63,10 +63,15 @@ autolink_delim(uint8_t *data, size_t link_end, size_t offset, size_t size)
 		}
 
 	while (link_end > 0) {
-		if (strchr("?!.,", data[link_end - 1]) != NULL)
+		uint8_t c = data[link_end - 1];
+
+		if (c == 0)
+			break;
+
+		if (strchr("?!.,", c) != NULL)
 			link_end--;
 
-		else if (data[link_end - 1] == ';') {
+		else if (c == ';') {
 			size_t new_end = link_end - 2;
 
 			while (new_end > 0 && isalpha(data[new_end]))
@@ -210,6 +215,9 @@ sd_autolink__email(
 
 	for (rewind = 0; rewind < offset; ++rewind) {
 		uint8_t c = data[-rewind - 1];
+
+		if (c == 0)
+			break;
 
 		if (isalnum(c))
 			continue;

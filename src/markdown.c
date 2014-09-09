@@ -778,7 +778,7 @@ char_autolink_www(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 		BUFPUTSL(link_url, "http://");
 		bufput(link_url, link->data, link->size);
 
-		ob->size -= rewind;
+		buftruncate(ob, ob->size - rewind);
 		if (rndr->cb.normal_text) {
 			link_text = rndr_newbuf(rndr, BUFFER_SPAN);
 			rndr->cb.normal_text(link_text, link, rndr->opaque);
@@ -805,10 +805,10 @@ char_autolink_subreddit_or_username(struct buf *ob, struct sd_markdown *rndr, ui
 
 	link = rndr_newbuf(rndr, BUFFER_SPAN);
 	if ((link_len = sd_autolink__subreddit(&rewind, link, data, offset, size)) > 0) {
-		ob->size -= rewind;
+		buftruncate(ob, ob->size - rewind);
 		rndr->cb.autolink(ob, link, MKDA_NORMAL, rndr->opaque);
 	} else if ((link_len = sd_autolink__username(&rewind, link, data, offset, size)) > 0) {
-		ob->size -= rewind;
+		buftruncate(ob, ob->size - rewind);
 		rndr->cb.autolink(ob, link, MKDA_NORMAL, rndr->opaque);
 	}
 	rndr_popbuf(rndr, BUFFER_SPAN);
@@ -828,7 +828,7 @@ char_autolink_email(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, siz
 	link = rndr_newbuf(rndr, BUFFER_SPAN);
 
 	if ((link_len = sd_autolink__email(&rewind, link, data, offset, size, 0)) > 0) {
-		ob->size -= rewind;
+		buftruncate(ob, ob->size - rewind);
 		rndr->cb.autolink(ob, link, MKDA_EMAIL, rndr->opaque);
 	}
 
@@ -848,7 +848,7 @@ char_autolink_url(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 	link = rndr_newbuf(rndr, BUFFER_SPAN);
 
 	if ((link_len = sd_autolink__url(&rewind, link, data, offset, size, 0)) > 0) {
-		ob->size -= rewind;
+		buftruncate(ob, ob->size - rewind);
 		rndr->cb.autolink(ob, link, MKDA_NORMAL, rndr->opaque);
 	}
 

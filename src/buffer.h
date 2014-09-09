@@ -34,6 +34,7 @@ extern "C" {
 typedef enum {
 	BUF_OK = 0,
 	BUF_ENOMEM = -1,
+	BUF_EINVALIDIDX = -2,
 } buferror_t;
 
 /* struct buf: character array buffer */
@@ -88,6 +89,9 @@ void bufslurp(struct buf *, size_t);
 
 /* bufprintf: formatted printing to a buffer */
 void bufprintf(struct buf *, const char *, ...) __attribute__ ((format (printf, 2, 3)));
+
+/* buftruncate: truncates the buffer at `size` */
+int buftruncate(struct buf *buf, size_t size);
 
 #ifdef __cplusplus
 }

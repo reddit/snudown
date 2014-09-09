@@ -220,3 +220,17 @@ bufslurp(struct buf *buf, size_t len)
 	buf->size -= len;
 	memmove(buf->data, buf->data + len, buf->size);
 }
+
+/* buftrucate: truncates the buffer at `size` */
+int
+buftruncate(struct buf *buf, size_t size)
+{
+	if (buf->size < size || size < 0) {
+		/* bail out in debug mode so we can figure out why this happened */
+		assert(0);
+		return BUF_EINVALIDIDX;
+	}
+
+	buf->size = size;
+	return BUF_OK;
+}

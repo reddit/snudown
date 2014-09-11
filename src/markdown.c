@@ -2462,8 +2462,9 @@ sd_markdown_new(
 	md->active_char['&'] = MD_CHAR_ENTITITY;
 
 	if (extensions & MKDEXT_AUTOLINK) {
+		if (!(extensions & MKDEXT_NO_EMAIL_AUTOLINK))
+			md->active_char['@'] = MD_CHAR_AUTOLINK_EMAIL;
 		md->active_char[':'] = MD_CHAR_AUTOLINK_URL;
-		md->active_char['@'] = MD_CHAR_AUTOLINK_EMAIL;
 		md->active_char['w'] = MD_CHAR_AUTOLINK_WWW;
 		md->active_char['/'] = MD_CHAR_AUTOLINK_SUBREDDIT_OR_USERNAME;
 	}

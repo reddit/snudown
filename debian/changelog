@@ -1,3 +1,11 @@
+snudown (1.2.0) unstable; urgency=medium
+
+  * security: fix rewind issues
+  * email autolinks disabled due to ^
+  * security: fix table header OOM bomb
+
+ -- Neil Williams <neil@reddit.com>  Sat, 20 Sep 2014 11:59:34 -0700
+
 snudown (1.1.6) unstable; urgency=low
 
   * add ts3server url scheme to whitelist

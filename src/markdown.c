@@ -118,6 +118,7 @@ struct sd_markdown {
 	struct stack work_bufs[2];
 	unsigned int ext_flags;
 	size_t max_nesting;
+	size_t max_table_cols;
 	int in_link_body;
 };
 
@@ -2015,7 +2016,7 @@ parse_table_row(
 	int *col_data,
 	int header_flag)
 {
-	size_t i = 0, col;
+	size_t i = 0, col, cols_left;
 	struct buf *row_work = 0;
 
 	if (!rndr->cb.table_cell || !rndr->cb.table_row)
@@ -2046,15 +2047,16 @@ parse_table_row(
 			cell_end--;
 
 		parse_inline(cell_work, rndr, data + cell_start, 1 + cell_end - cell_start);
-		rndr->cb.table_cell(row_work, cell_work, col_data[col] | header_flag, rndr->opaque);
+		rndr->cb.table_cell(row_work, cell_work, col_data[col] | header_flag, rndr->opaque, 0);
 
 		rndr_popbuf(rndr, BUFFER_SPAN);
 		i++;
 	}
 
-	for (; col < columns; ++col) {
+	cols_left = columns - col;
+	if (cols_left > 0) {
 		struct buf empty_cell = { 0, 0, 0, 0 };
-		rndr->cb.table_cell(row_work, &empty_cell, col_data[col] | header_flag, rndr->opaque);
+		rndr->cb.table_cell(row_work, &empty_cell, col_data[col] | header_flag, rndr->opaque, cols_left);
 	}
 
 	rndr->cb.table_row(ob, row_work, rndr->opaque);
@@ -2092,6 +2094,9 @@ parse_table_header(
 
 	if (header_end && data[header_end - 1] == '|')
 		pipes--;
+
+	if (pipes + 1 > rndr->max_table_cols)
+		return 0;
 
 	*columns = pipes + 1;
 	*column_data = calloc(*columns, sizeof(int));
@@ -2423,12 +2428,13 @@ struct sd_markdown *
 sd_markdown_new(
 	unsigned int extensions,
 	size_t max_nesting,
+	size_t max_table_cols,
 	const struct sd_callbacks *callbacks,
 	void *opaque)
 {
 	struct sd_markdown *md = NULL;
 
-	assert(max_nesting > 0 && callbacks);
+	assert(max_nesting > 0 && max_table_cols > 0 && callbacks);
 
 	md = malloc(sizeof(struct sd_markdown));
 	if (!md)
@@ -2476,6 +2482,7 @@ sd_markdown_new(
 	md->ext_flags = extensions;
 	md->opaque = opaque;
 	md->max_nesting = max_nesting;
+	md->max_table_cols = max_table_cols;
 	md->in_link_body = 0;
 
 	return md;

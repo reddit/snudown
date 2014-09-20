@@ -75,7 +75,7 @@ struct sd_callbacks {
 	void (*paragraph)(struct buf *ob, const struct buf *text, void *opaque);
 	void (*table)(struct buf *ob, const struct buf *header, const struct buf *body, void *opaque);
 	void (*table_row)(struct buf *ob, const struct buf *text, void *opaque);
-	void (*table_cell)(struct buf *ob, const struct buf *text, int flags, void *opaque);
+	void (*table_cell)(struct buf *ob, const struct buf *text, int flags, void *opaque, int col_span);
 
 
 	/* span level callbacks - NULL or return 0 prints the span verbatim */
@@ -118,6 +118,7 @@ extern struct sd_markdown *
 sd_markdown_new(
 	unsigned int extensions,
 	size_t max_nesting,
+	size_t max_table_cols,
 	const struct sd_callbacks *callbacks,
 	void *opaque);
 

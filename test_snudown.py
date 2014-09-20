@@ -161,6 +161,18 @@ cases = {
 
     '/R/reddit.com':
         '<p>/R/reddit.com</p>\n',
+
+    ('|' * 5) + '\n' + ('-|' * 5) + '\n|\n':
+        '<table><thead>\n<tr>\n' + ('<th></th>\n' * 4) + '</tr>\n</thead><tbody>\n<tr>\n<td colspan="4" ></td>\n</tr>\n</tbody></table>\n',
+
+    ('|' * 2) + '\n' + ('-|' * 2) + '\n|\n':
+        '<table><thead>\n<tr>\n' + ('<th></th>\n' * 1) + '</tr>\n</thead><tbody>\n<tr>\n<td></td>\n</tr>\n</tbody></table>\n',
+
+    ('|' * 65) + '\n' + ('-|' * 65) + '\n|\n':
+        '<table><thead>\n<tr>\n' + ('<th></th>\n' * 64) + '</tr>\n</thead><tbody>\n<tr>\n<td colspan="64" ></td>\n</tr>\n</tbody></table>\n',
+
+    ('|' * 66) + '\n' + ('-|' * 66) + '\n|\n':
+        '<p>' + ('|' * 66) + '\n' + ('-|' * 66) + '\n|' + '</p>\n',
 }
 
 wiki_cases = {

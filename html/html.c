@@ -565,12 +565,16 @@ rndr_tablerow(struct buf *ob, const struct buf *text, void *opaque)
 }
 
 static void
-rndr_tablecell(struct buf *ob, const struct buf *text, int flags, void *opaque)
+rndr_tablecell(struct buf *ob, const struct buf *text, int flags, void *opaque, int col_span)
 {
 	if (flags & MKD_TABLE_HEADER) {
 		BUFPUTSL(ob, "<th");
 	} else {
 		BUFPUTSL(ob, "<td");
+	}
+
+	if (col_span > 1) {
+		bufprintf(ob, " colspan=\"%d\" ", col_span);
 	}
 
 	switch (flags & MKD_TABLE_ALIGNMASK) {

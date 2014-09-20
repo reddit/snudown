@@ -102,6 +102,7 @@ static struct sd_markdown* make_custom_renderer(struct module_state* state,
 	return sd_markdown_new(
 		markdownflags,
 		16,
+		64,
 		&state->callbacks,
 		&state->options
 	);

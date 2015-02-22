@@ -1,4 +1,5 @@
 from setuptools import setup, Extension
+from setuptools.command.build_ext import build_ext
 
 import re
 import os
@@ -21,6 +22,11 @@ with open('snudown.c', 'r') as f:
             version = m.group(1)
 assert version
 
+class GPerfingBuildExt(build_ext):
+    def run(self):
+        os.system("gperf src/html_entities.gperf > src/html_entities.h")
+        build_ext.run(self)
+
 setup(
     name='snudown',
     version=version,
@@ -28,6 +34,7 @@ setup(
     author_email='vicent@github.com',
     license='MIT',
     test_suite="test_snudown.test_snudown",
+    cmdclass={'build_ext': GPerfingBuildExt,},
     ext_modules=[
         Extension(
             name='snudown',

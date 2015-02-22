@@ -1,4 +1,5 @@
 build/
 snudown.egg-info/
+src/html_entities.h
 *.pyc
 *.so

@@ -40,6 +40,7 @@
 #define GPERF_DOWNCASE 1
 #define GPERF_CASE_STRNCMP 1
 #include "html_blocks.h"
+#include "html_entities.h"
 
 /***************
  * LOCAL TYPES *
@@ -709,23 +710,69 @@ char_escape(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offs
 }
 
 /* char_entity • '&' escaped when it doesn't belong to an entity */
-/* valid entities are assumed to be anything matching &#?[A-Za-z0-9]+; */
 static size_t
 char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
 {
 	size_t end = 1;
+	size_t content_start;
+	size_t content_end;
 	struct buf work = { 0, 0, 0, 0 };
+	int numeric = 0;
+	int hex = 0;
+	int entity_base;
+	u_int64_t entity_val;
 
-	if (end < size && data[end] == '#')
+	if (end < size && data[end] == '#') {
+		numeric = 1;
 		end++;
+	}
 
-	while (end < size && isalnum(data[end]))
+	if (end < size && numeric && tolower(data[end]) == 'x') {
+		hex = 1;
 		end++;
+	}
 
-	if (end < size && data[end] == ';')
-		end++; /* real entity */
+	content_start = end;
+
+	while (end < size) {
+		const char c = data[end];
+		if (hex) {
+			if (!isxdigit(c)) break;
+		} else if (numeric) {
+			if (!isdigit(c)) break;
+		} else if (!isalpha(c)) {
+			break;
+		}
+		end++;
+	}
+
+	content_end = end;
+
+	if (end > content_start && end < size && data[end] == ';')
+		end++; /* well-formed entity */
 	else
 		return 0; /* lone '&' */
+
+	/* way too long to be a valid numeric entity */
+	if (numeric && content_end - content_start > MAX_NUM_ENTITY_LEN)
+		return 0;
+
+	/* Validate the entity's contents */
+	if (numeric) {
+		if (hex)
+			entity_base = 16;
+		else
+			entity_base = 10;
+
+		// This is ok because  it'll stop once it hits the ';'
+		entity_val = strtol((char*)data + content_start, NULL, entity_base);
+		// Outside of UCS range, many parsers will choke on this.
+		if (entity_val > MAX_NUM_ENTITY_VAL)
+			return 0;
+	} else {
+		if (!is_allowed_named_entity((const char *)data, end))
+			return 0;
+	}
 
 	if (rndr->cb.entity) {
 		work.data = data;

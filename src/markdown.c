@@ -740,7 +740,7 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offs
 			if (!isxdigit(c)) break;
 		} else if (numeric) {
 			if (!isdigit(c)) break;
-		} else if (!isalpha(c)) {
+		} else if (!isalnum(c)) {
 			break;
 		}
 		end++;

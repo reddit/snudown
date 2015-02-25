@@ -1,8 +1,10 @@
+from distutils.spawn import find_executable
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
 import re
 import os
+import subprocess
 import fnmatch
 
 def c_files_in(directory):
@@ -13,6 +15,11 @@ def c_files_in(directory):
     return paths
 
 
+def process_gperf_file(gperf_file, output_file):
+    if not find_executable("gperf"):
+        raise Exception("Couldn't find `gperf`, is it installed?")
+    subprocess.check_call(["gperf", gperf_file, "--output-file=%s" % output_file])
+
 version = None
 version_re = re.compile(r'^#define\s+SNUDOWN_VERSION\s+"([^"]+)"$')
 with open('snudown.c', 'r') as f:
@@ -22,9 +29,10 @@ with open('snudown.c', 'r') as f:
             version = m.group(1)
 assert version
 
+
 class GPerfingBuildExt(build_ext):
     def run(self):
-        os.system("gperf src/html_entities.gperf > src/html_entities.h")
+        process_gperf_file("src/html_entities.gperf", "src/html_entities.h")
         build_ext.run(self)
 
 setup(

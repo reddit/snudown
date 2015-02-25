@@ -1,3 +1,9 @@
+snudown (1.3.1) unstable; urgency=medium
+
+  * add missing entities to entity whitelist
+
+ -- Neil Williams <neil@reddit.com>  Tue, 24 Feb 2015 22:12:29 -0800
+
 snudown (1.3.0) unstable; urgency=medium
 
   * validate html entities and escape unrecognized ones

@@ -3,6 +3,7 @@
 
 import snudown
 import unittest
+import itertools
 import cStringIO as StringIO
 
 
@@ -219,6 +220,24 @@ cases = {
     '&#x;':
         '<p>&amp;#x;</p>\n',
 }
+
+# Test that every illegal numeric entity is encoded as
+# it should be.
+ILLEGAL_NUMERIC_ENT_RANGES = (
+    xrange(0, 9),
+    xrange(11, 13),
+    xrange(14, 32),
+    xrange(55296, 57344),
+    xrange(65534, 65536),
+)
+
+invalid_ent_test_key = ''
+invalid_ent_test_val = ''
+for i in itertools.chain(*ILLEGAL_NUMERIC_ENT_RANGES):
+    invalid_ent_test_key += '&#%d;' % i
+    invalid_ent_test_val += '&amp;#%d;' % i
+
+cases[invalid_ent_test_key] = '<p>%s</p>\n' % invalid_ent_test_val
 
 wiki_cases = {
     '<table scope="foo"bar>':

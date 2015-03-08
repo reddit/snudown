@@ -8,11 +8,33 @@
 %{
 #include <stdlib.h>
 
-// Parsers tend to choke on entities with values greater than this
+/* Parsers tend to choke on entities with values greater than this */
 const u_int32_t MAX_NUM_ENTITY_VAL = 0x10ffff;
-// Any numeric entity longer than this is obviously above MAX_ENTITY_CHAR
-// used to avoid dealing with overflows.
+/* Any numeric entity longer than this is obviously above MAX_NUM_ENTITY_VAL
+ * used to avoid dealing with overflows. */
 const size_t MAX_NUM_ENTITY_LEN = 7;
+
+inline int is_valid_numeric_entity(uint32_t entity_val)
+{
+	/* Some XML parsers will choke on entities with certain
+	 * values (mostly control characters.)
+	 *
+	 * According to lxml these are all problematic:
+	 *
+	 *	[xrange(0, 8),
+	 *	 xrange(11, 12),
+	 *	 xrange(14, 31),
+	 *	 xrange(55296, 57343),
+	 *	 xrange(65534, 65535)]
+	 */
+	return (entity_val > 8
+			&& (entity_val != 11 && entity_val > 12)
+			&& (entity_val < 14 || entity_val > 31)
+			&& (entity_val < 55296 || entity_val > 57343)
+			&& (entity_val != 65534 && entity_val != 65535)
+			&& entity_val <= MAX_NUM_ENTITY_VAL);
+}
+
 %}
 %%
 &AElig;

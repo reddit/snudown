@@ -720,7 +720,7 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offs
 	int numeric = 0;
 	int hex = 0;
 	int entity_base;
-	u_int64_t entity_val;
+	uint32_t entity_val;
 
 	if (end < size && data[end] == '#') {
 		numeric = 1;
@@ -751,7 +751,7 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offs
 	if (end > content_start && end < size && data[end] == ';')
 		end++; /* well-formed entity */
 	else
-		return 0; /* lone '&' */
+		return 0; /* not an entity */
 
 	/* way too long to be a valid numeric entity */
 	if (numeric && content_end - content_start > MAX_NUM_ENTITY_LEN)
@@ -766,8 +766,7 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offs
 
 		// This is ok because  it'll stop once it hits the ';'
 		entity_val = strtol((char*)data + content_start, NULL, entity_base);
-		// Outside of UCS range, many parsers will choke on this.
-		if (entity_val > MAX_NUM_ENTITY_VAL)
+		if (!is_valid_numeric_entity(entity_val))
 			return 0;
 	} else {
 		if (!is_allowed_named_entity((const char *)data, end))

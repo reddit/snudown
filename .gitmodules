@@ -1,0 +1,4 @@
+[submodule "gumbo_snudown"]
+	path = fuzzing/gumbo_snudown
+	url = git@github.com:JordanMilne/gumbo-parser.git
+	branch = markdown_validation

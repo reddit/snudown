@@ -36,7 +36,7 @@ gperf_src:
 	cd ../src/ && gperf html_entities.gperf --output-file=html_entities.h
 
 # executable
-snudown-validator: $(SUNDOWN_VALIDATOR_SRC) build_dir gumbo_snudown gperf_src
+snudown-validator: build_dir gumbo_snudown gperf_src
 	cd build && cmake .. -DCMAKE_C_COMPILER=$(AFL_PATH)/afl-gcc
 	$(MAKE) -C build all
 
@@ -48,7 +48,7 @@ gen_testcases:
 
 afl: gen_testcases snudown-validator
 	@[ -n "$(AFL_PATH)" ] || { echo '$$AFL_PATH not set'; false; }
-	@mkdir -p afl_results
+	@mkdir -p testing/afl_results
 	$(AFL_PATH)/afl-fuzz \
 	    -i testing/testcases \
 	    -o testing/afl_results \

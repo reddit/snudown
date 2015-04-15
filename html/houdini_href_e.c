@@ -62,7 +62,9 @@ houdini_escape_href(struct buf *ob, const uint8_t *src, size_t size)
 
 	while (i < size) {
 		org = i;
-		while (i < size && HREF_SAFE[src[i]] != 0)
+		/* Skip by characters that don't need special
+		 * processing */
+		while (i < size && HREF_SAFE[src[i]] == 1)
 			i++;
 
 		if (i > org)

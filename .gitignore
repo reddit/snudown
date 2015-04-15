@@ -1,5 +1,10 @@
 build/
+dist/
 snudown.egg-info/
 src/html_entities.h
 *.pyc
 *.so
+*.so.*
+*.o
+/fuzzing/bin
+/fuzzing/testing

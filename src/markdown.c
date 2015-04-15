@@ -62,20 +62,20 @@ struct link_ref {
 /*   offset is the number of valid chars before data */
 struct sd_markdown;
 typedef size_t
-(*char_trigger)(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
+(*char_trigger)(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size);
 
-static size_t char_emphasis(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
-static size_t char_linebreak(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
-static size_t char_codespan(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
-static size_t char_escape(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
-static size_t char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
-static size_t char_langle_tag(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
-static size_t char_autolink_url(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
-static size_t char_autolink_email(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
-static size_t char_autolink_www(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
-static size_t char_autolink_subreddit_or_username(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
-static size_t char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
-static size_t char_superscript(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size);
+static size_t char_emphasis(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size);
+static size_t char_linebreak(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size);
+static size_t char_codespan(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size);
+static size_t char_escape(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size);
+static size_t char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size);
+static size_t char_langle_tag(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size);
+static size_t char_autolink_url(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size);
+static size_t char_autolink_email(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size);
+static size_t char_autolink_www(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size);
+static size_t char_autolink_subreddit_or_username(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size);
+static size_t char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size);
+static size_t char_superscript(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size);
 
 enum markdown_char_t {
 	MD_CHAR_NONE = 0,
@@ -357,7 +357,7 @@ tag_length(uint8_t *data, size_t size, enum mkd_autolink *autolink)
 static void
 parse_inline(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size)
 {
-	size_t i = 0, end = 0;
+	size_t i = 0, end = 0, last_special = 0;
 	uint8_t action = 0;
 	struct buf work = { 0, 0, 0, 0 };
 
@@ -382,12 +382,12 @@ parse_inline(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t siz
 		if (end >= size) break;
 		i = end;
 
-		end = markdown_char_ptrs[(int)action](ob, rndr, data + i, i, size - i);
+		end = markdown_char_ptrs[(int)action](ob, rndr, data + i, i - last_special, size - i);
 		if (!end) /* no action from the callback */
 			end = i + 1;
 		else {
 			i += end;
-			end = i;
+			last_special = end = i;
 		}
 	}
 }
@@ -595,7 +595,7 @@ parse_emph3(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size
 
 /* char_emphasis • single and double emphasis parsing */
 static size_t
-char_emphasis(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
+char_emphasis(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size)
 {
 	uint8_t c = data[0];
 	size_t ret;
@@ -629,9 +629,9 @@ char_emphasis(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t of
 
 /* char_linebreak • '\n' preceded by two spaces (assuming linebreak != 0) */
 static size_t
-char_linebreak(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
+char_linebreak(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size)
 {
-	if (offset < 2 || data[-1] != ' ' || data[-2] != ' ')
+	if (max_rewind < 2 || data[-1] != ' ' || data[-2] != ' ')
 		return 0;
 
 	/* removing the last space from ob and rendering */
@@ -644,7 +644,7 @@ char_linebreak(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t o
 
 /* char_codespan • '`' parsing a code span (assuming codespan != 0) */
 static size_t
-char_codespan(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
+char_codespan(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size)
 {
 	size_t end, nb = 0, i, f_begin, f_end;
 
@@ -687,7 +687,7 @@ char_codespan(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t of
 
 /* char_escape • '\\' backslash escape */
 static size_t
-char_escape(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
+char_escape(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size)
 {
 	static const char *escape_chars = "\\`*_{}[]()#+-.!:|&<>/^~";
 	struct buf work = { 0, 0, 0, 0 };
@@ -711,7 +711,7 @@ char_escape(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offs
 
 /* char_entity • '&' escaped when it doesn't belong to an entity */
 static size_t
-char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
+char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size)
 {
 	size_t end = 1;
 	size_t content_start;
@@ -720,7 +720,7 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offs
 	int numeric = 0;
 	int hex = 0;
 	int entity_base;
-	u_int64_t entity_val;
+	uint32_t entity_val;
 
 	if (end < size && data[end] == '#') {
 		numeric = 1;
@@ -751,7 +751,7 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offs
 	if (end > content_start && end < size && data[end] == ';')
 		end++; /* well-formed entity */
 	else
-		return 0; /* lone '&' */
+		return 0; /* not an entity */
 
 	/* way too long to be a valid numeric entity */
 	if (numeric && content_end - content_start > MAX_NUM_ENTITY_LEN)
@@ -766,8 +766,7 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offs
 
 		// This is ok because  it'll stop once it hits the ';'
 		entity_val = strtol((char*)data + content_start, NULL, entity_base);
-		// Outside of UCS range, many parsers will choke on this.
-		if (entity_val > MAX_NUM_ENTITY_VAL)
+		if (!is_valid_numeric_entity(entity_val))
 			return 0;
 	} else {
 		if (!is_allowed_named_entity((const char *)data, end))
@@ -786,7 +785,7 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offs
 
 /* char_langle_tag • '<' when tags or autolinks are allowed */
 static size_t
-char_langle_tag(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
+char_langle_tag(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size)
 {
 	enum mkd_autolink altype = MKDA_NOT_AUTOLINK;
 	size_t end = tag_length(data, size, &altype);
@@ -811,7 +810,7 @@ char_langle_tag(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t 
 }
 
 static size_t
-char_autolink_www(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
+char_autolink_www(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size)
 {
 	struct buf *link, *link_url, *link_text;
 	size_t link_len, rewind;
@@ -821,7 +820,7 @@ char_autolink_www(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 
 	link = rndr_newbuf(rndr, BUFFER_SPAN);
 
-	if ((link_len = sd_autolink__www(&rewind, link, data, offset, size, 0)) > 0) {
+	if ((link_len = sd_autolink__www(&rewind, link, data, max_rewind, size, 0)) > 0) {
 		link_url = rndr_newbuf(rndr, BUFFER_SPAN);
 		BUFPUTSL(link_url, "http://");
 		bufput(link_url, link->data, link->size);
@@ -843,7 +842,7 @@ char_autolink_www(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 }
 
 static size_t
-char_autolink_subreddit_or_username(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
+char_autolink_subreddit_or_username(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size)
 {
 	struct buf *link;
 	size_t link_len, rewind;
@@ -852,10 +851,10 @@ char_autolink_subreddit_or_username(struct buf *ob, struct sd_markdown *rndr, ui
 		return 0;
 
 	link = rndr_newbuf(rndr, BUFFER_SPAN);
-	if ((link_len = sd_autolink__subreddit(&rewind, link, data, offset, size)) > 0) {
+	if ((link_len = sd_autolink__subreddit(&rewind, link, data, max_rewind, size)) > 0) {
 		buftruncate(ob, ob->size - rewind);
 		rndr->cb.autolink(ob, link, MKDA_NORMAL, rndr->opaque);
-	} else if ((link_len = sd_autolink__username(&rewind, link, data, offset, size)) > 0) {
+	} else if ((link_len = sd_autolink__username(&rewind, link, data, max_rewind, size)) > 0) {
 		buftruncate(ob, ob->size - rewind);
 		rndr->cb.autolink(ob, link, MKDA_NORMAL, rndr->opaque);
 	}
@@ -865,7 +864,7 @@ char_autolink_subreddit_or_username(struct buf *ob, struct sd_markdown *rndr, ui
 }
 
 static size_t
-char_autolink_email(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
+char_autolink_email(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size)
 {
 	struct buf *link;
 	size_t link_len, rewind;
@@ -875,7 +874,7 @@ char_autolink_email(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, siz
 
 	link = rndr_newbuf(rndr, BUFFER_SPAN);
 
-	if ((link_len = sd_autolink__email(&rewind, link, data, offset, size, 0)) > 0) {
+	if ((link_len = sd_autolink__email(&rewind, link, data, max_rewind, size, 0)) > 0) {
 		buftruncate(ob, ob->size - rewind);
 		rndr->cb.autolink(ob, link, MKDA_EMAIL, rndr->opaque);
 	}
@@ -885,7 +884,7 @@ char_autolink_email(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, siz
 }
 
 static size_t
-char_autolink_url(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
+char_autolink_url(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size)
 {
 	struct buf *link;
 	size_t link_len, rewind;
@@ -895,7 +894,7 @@ char_autolink_url(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 
 	link = rndr_newbuf(rndr, BUFFER_SPAN);
 
-	if ((link_len = sd_autolink__url(&rewind, link, data, offset, size, 0)) > 0) {
+	if ((link_len = sd_autolink__url(&rewind, link, data, max_rewind, size, 0)) > 0) {
 		buftruncate(ob, ob->size - rewind);
 		rndr->cb.autolink(ob, link, MKDA_NORMAL, rndr->opaque);
 	}
@@ -906,9 +905,9 @@ char_autolink_url(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 
 /* char_link • '[': parsing a link or an image */
 static size_t
-char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
+char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size)
 {
-	int is_img = (offset && data[-1] == '!'), level;
+	int is_img = (max_rewind && data[-1] == '!'), level;
 	size_t i = 1, txt_e, link_b = 0, link_e = 0, title_b = 0, title_e = 0;
 	struct buf *content = 0;
 	struct buf *link = 0;
@@ -1143,7 +1142,7 @@ cleanup:
 }
 
 static size_t
-char_superscript(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset, size_t size)
+char_superscript(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t size)
 {
 	size_t sup_start, sup_len;
 	struct buf *sup;

@@ -3,6 +3,7 @@
 
 import snudown
 import unittest
+import itertools
 import cStringIO as StringIO
 
 
@@ -10,6 +11,9 @@ cases = {
     '': '',
     'http://www.reddit.com':
         '<p><a href="http://www.reddit.com">http://www.reddit.com</a></p>\n',
+
+    'http://www.reddit.com/a\x00b':
+        '<p><a href="http://www.reddit.com/ab">http://www.reddit.com/ab</a></p>\n',
 
     '[foo](http://en.wikipedia.org/wiki/Link_(film\))':
         '<p><a href="http://en.wikipedia.org/wiki/Link_(film)">foo</a></p>\n',
@@ -162,6 +166,33 @@ cases = {
     '/R/reddit.com':
         '<p>/R/reddit.com</p>\n',
 
+    '/r/irc://foo.bar/':
+        '<p><a href="/r/irc">/r/irc</a>://foo.bar/</p>\n',
+
+    '/r/t:irc//foo.bar/':
+        '<p><a href="/r/t:irc//foo">/r/t:irc//foo</a>.bar/</p>\n',
+
+    '/r/all-irc://foo.bar/':
+        '<p><a href="/r/all-irc">/r/all-irc</a>://foo.bar/</p>\n',
+
+    '/r/foo+irc://foo.bar/':
+        '<p><a href="/r/foo+irc">/r/foo+irc</a>://foo.bar/</p>\n',
+
+    '/r/www.example.com':
+        '<p><a href="/r/www">/r/www</a>.example.com</p>\n',
+
+    '.http://reddit.com':
+        '<p>.<a href="http://reddit.com">http://reddit.com</a></p>\n',
+
+    '[r://<http://reddit.com/>](/aa)':
+        '<p><a href="/aa">r://<a href="http://reddit.com/">http://reddit.com/</a></a></p>\n',
+
+    '/u/http://www.reddit.com/user/reddit':
+        '<p><a href="/u/http">/u/http</a>://<a href="http://www.reddit.com/user/reddit">www.reddit.com/user/reddit</a></p>\n',
+
+    'www.http://example.com/':
+        '<p><a href="http://www.http://example.com/">www.http://example.com/</a></p>\n',
+
     ('|' * 5) + '\n' + ('-|' * 5) + '\n|\n':
         '<table><thead>\n<tr>\n' + ('<th></th>\n' * 4) + '</tr>\n</thead><tbody>\n<tr>\n<td colspan="4" ></td>\n</tr>\n</tbody></table>\n',
 
@@ -216,6 +247,24 @@ cases = {
     '&#x;':
         '<p>&amp;#x;</p>\n',
 }
+
+# Test that every illegal numeric entity is encoded as
+# it should be.
+ILLEGAL_NUMERIC_ENT_RANGES = (
+    xrange(0, 9),
+    xrange(11, 13),
+    xrange(14, 32),
+    xrange(55296, 57344),
+    xrange(65534, 65536),
+)
+
+invalid_ent_test_key = ''
+invalid_ent_test_val = ''
+for i in itertools.chain(*ILLEGAL_NUMERIC_ENT_RANGES):
+    invalid_ent_test_key += '&#%d;' % i
+    invalid_ent_test_val += '&amp;#%d;' % i
+
+cases[invalid_ent_test_key] = '<p>%s</p>\n' % invalid_ent_test_val
 
 wiki_cases = {
     '<table scope="foo"bar>':

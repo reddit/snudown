@@ -1,9 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
 
-# I really don't get GNU Make, and I couldn't figure out how to get it
-# to not pullute the normal obj dir with our AFL and ASANified obj
-# files. Feel free to convert it to vanilla make.
-
 set(HEADERS
   ../html/houdini.h
   ../html/html.h

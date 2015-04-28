@@ -132,6 +132,69 @@ cases = {
     '/u/test/commentscommentscommentscommentscommentscommentscomments/test test':
         '<p><a href="/u/test/commentscommentscommentscommentscommentscommentscomments/test">/u/test/commentscommentscommentscommentscommentscommentscomments/test</a> test</p>\n',
 
+    'a /u/reddit':
+        '<p>a <a href="/u/reddit">/u/reddit</a></p>\n',
+
+    'u/reddit':
+        '<p><a href="/u/reddit">u/reddit</a></p>\n',
+
+    'a u/reddit':
+        '<p>a <a href="/u/reddit">u/reddit</a></p>\n',
+
+    'a u/reddit/foobaz':
+        '<p>a <a href="/u/reddit/foobaz">u/reddit/foobaz</a></p>\n',
+
+    'foo:u/reddit':
+        '<p>foo:<a href="/u/reddit">u/reddit</a></p>\n',
+
+    'fuu/reddit':
+        '<p>fuu/reddit</p>\n',
+
+    # Don't treat unicode punctuation as a word boundary for now
+    u'a。u/reddit'.encode('utf8'):
+        u'<p>a。u/reddit</p>\n'.encode('utf8'),
+
+    '\\/u/me':
+        '<p>/u/me</p>\n',
+
+    '\\\\/u/me':
+        '<p>\\<a href="/u/me">/u/me</a></p>\n',
+
+    '\\u/me':
+        '<p>\\<a href="/u/me">u/me</a></p>\n',
+
+    '\\\\u/me':
+        '<p>\\<a href="/u/me">u/me</a></p>\n',
+
+    'u\\/me':
+        '<p>u/me</p>\n',
+
+    '*u/me*':
+        '<p><em><a href="/u/me">u/me</a></em></p>\n',
+
+    'foo^u/me':
+        '<p>foo<sup><a href="/u/me">u/me</a></sup></p>\n',
+
+    '*foo*u/me':
+        '<p><em>foo</em><a href="/u/me">u/me</a></p>\n',
+
+    'u/me':
+        '<p><a href="/u/me">u/me</a></p>\n',
+
+    '/u/me':
+        '<p><a href="/u/me">/u/me</a></p>\n',
+
+    'u/m':
+        '<p>u/m</p>\n',
+
+    '/u/m':
+        '<p>/u/m</p>\n',
+
+    '/f/oobar':
+        '<p>/f/oobar</p>\n',
+
+    'f/oobar':
+        '<p>f/oobar</p>\n',
 
     '/r/test/commentscommentscommentscommentscommentscommentscomments/test test':
         '<p><a href="/r/test/commentscommentscommentscommentscommentscommentscomments/test">/r/test/commentscommentscommentscommentscommentscommentscomments/test</a> test</p>\n',
@@ -162,6 +225,21 @@ cases = {
 
     '/r/notall-minus':
         '<p><a href="/r/notall">/r/notall</a>-minus</p>\n',
+
+    'a /r/reddit.com':
+        '<p>a <a href="/r/reddit.com">/r/reddit.com</a></p>\n',
+
+    'a r/reddit.com':
+        '<p>a <a href="/r/reddit.com">r/reddit.com</a></p>\n',
+
+    'foo:r/reddit.com':
+        '<p>foo:<a href="/r/reddit.com">r/reddit.com</a></p>\n',
+
+    'foobar/reddit.com':
+        '<p>foobar/reddit.com</p>\n',
+
+    u'a。r/reddit.com'.encode('utf8'):
+        u'<p>a。r/reddit.com</p>\n'.encode('utf8'),
 
     '/R/reddit.com':
         '<p>/R/reddit.com</p>\n',

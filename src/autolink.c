@@ -139,6 +139,55 @@ autolink_delim(uint8_t *data, size_t link_end, size_t max_rewind, size_t size)
 	return link_end;
 }
 
+/*
+ * Checks that `prefix_char` occurs on a word boundary just before `data`,
+ * where `data` points to the character to search to the left of, and a word boundary
+ * is (currently) a whitespace character, punctuation, or the start of the string.
+ * Returns the length of the prefix.
+ */
+static int
+check_reddit_autolink_prefix(
+	const uint8_t* data,
+	size_t max_rewind,
+	size_t max_lookbehind,
+	size_t size,
+	char prefix_char
+	)
+{
+	/* Make sure this `/` is part of `/?r/` */
+	if (size < 2 || max_rewind < 1 || data[-1] != prefix_char)
+		return 0;
+
+	/* Not at the start of the buffer, no inlines to the immediate left of the `prefix_char` */
+	if (max_rewind > 1) {
+		const char boundary = data[-2];
+		if (boundary == '/')
+			return 2;
+		/**
+		 * Here's where our lack of unicode-awareness bites us. We don't correctly
+		 * match punctuation / whitespace characters for the boundary, because we
+		 * reject valid cases like "。r/example" (note the fullwidth period.)
+		 *
+		 * A better implementation might try to rewind over bytes with the 8th bit set, try
+		 * to decode them to a valid codepoint, then do a unicode-aware check on the codepoint.
+		 */
+		else if (ispunct(boundary) || isspace(boundary))
+			return 1;
+		else
+			return 0;
+	} else if (max_lookbehind > 2) {
+		/* There's an inline element just left of the `prefix_char`, is it an escaped forward
+		 * slash? bail out so we correctly handle stuff like "\/r/foo". This will also correctly
+		 * allow "\\/r/foo".
+		 */
+		if (data[-2] == '/' && data[-3] == '\\')
+			return 0;
+	}
+
+	/* Must be a new-style shortlink with nothing relevant to the left of it. */
+	return 1;
+}
+
 static size_t
 check_domain(uint8_t *data, size_t size, int allow_short)
 {
@@ -305,20 +354,36 @@ sd_autolink__url(
 }
 
 size_t
-sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t max_rewind, size_t size)
+sd_autolink__subreddit(
+	size_t *rewind_p,
+	struct buf *link,
+	uint8_t *data,
+	size_t max_rewind,
+	size_t max_lookbehind,
+	size_t size,
+	int *no_slash
+	)
 {
+	/**
+	 * This is meant to handle both r/foo and /r/foo style subreddit references.
+	 * In a valid /?r/ link, `*data` will always point to the '/' after the first 'r'.
+	 * In pseudo-regex, this matches something like:
+	 *
+	 * `(/|(?<=\b))r/(all-)?%subreddit%([-+]%subreddit%)*(/[\w\-/]*)?`
+	 * where %subreddit% == `((t:)?\w{2,24}|reddit\.com)`
+	 */
 	size_t link_end;
+	size_t rewind;
 	int is_allminus = 0;
 
-	if (size < 3)
+	rewind = check_reddit_autolink_prefix(data, max_rewind, max_lookbehind, size, 'r');
+	if (!rewind)
 		return 0;
 
-	/* make sure this / is part of /r/ */
-	if (strncmp((char*)data, "/r/", 3) != 0)
-		return 0;
-	link_end = strlen("/r/");
+	/* offset to the "meat" of the link */
+	link_end = strlen("/");
 
-	if (strncasecmp((char*)data + link_end, "all-", 4) == 0)
+	if (size >= link_end + 4 && strncasecmp((char*)data + link_end, "all-", 4) == 0)
 		is_allminus = 1;
 
 	do {
@@ -369,26 +434,38 @@ sd_autolink__subreddit(size_t *rewind_p, struct buf *link, uint8_t *data, size_t
 	}
 
 	/* make the link */
-	bufput(link, data, link_end);
-	*rewind_p = 0;
+	bufput(link, data - rewind, link_end + rewind);
+
+	*no_slash = (rewind == 1);
+	*rewind_p = rewind;
 
 	return link_end;
 }
 
 size_t
-sd_autolink__username(size_t *rewind_p, struct buf *link, uint8_t *data, size_t max_rewind, size_t size)
+sd_autolink__username(
+	size_t *rewind_p,
+	struct buf *link,
+	uint8_t *data,
+	size_t max_rewind,
+	size_t max_lookbehind,
+	size_t size,
+	int *no_slash
+	)
 {
 	size_t link_end;
+	size_t rewind;
 
-	if (size < 6)
+	if (size < 3)
 		return 0;
 
-	/* make sure this / is part of /u/ */
-	if (strncmp((char*)data, "/u/", 3) != 0)
+	rewind = check_reddit_autolink_prefix(data, max_rewind, max_lookbehind, size, 'u');
+	if (!rewind)
 		return 0;
+
+	link_end = strlen("/");
 
 	/* the first letter of a username must... well, be valid, we don't care otherwise */
-	link_end = strlen("/u/");
 	if (!isalnum(data[link_end]) && data[link_end] != '_' && data[link_end] != '-')
 		return 0;
 	link_end += 1;
@@ -401,8 +478,10 @@ sd_autolink__username(size_t *rewind_p, struct buf *link, uint8_t *data, size_t 
 		link_end++;
 
 	/* make the link */
-	bufput(link, data, link_end);
-	*rewind_p = 0;
+	bufput(link, data - rewind, link_end + rewind);
+
+	*no_slash = (rewind == 1);
+	*rewind_p = rewind;
 
 	return link_end;
 }

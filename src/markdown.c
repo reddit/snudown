@@ -777,8 +777,15 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_
 		work.data = data;
 		work.size = end;
 		rndr->cb.entity(ob, &work, rndr->opaque);
+	} else {
+		/* Necessary so we can normalize `&#X3E;` to `&#x3E;` */
+		bufputc(ob, '&');
+		if (numeric)
+			bufputc(ob, '#');
+		if (hex)
+			bufputc(ob, 'x');
+		bufput(ob, data + content_start, end - content_start);
 	}
-	else bufput(ob, data, end);
 
 	return end;
 }

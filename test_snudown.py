@@ -254,23 +254,27 @@ cases = {
         '<p>&amp;#x;</p>\n',
 }
 
-# Test that every illegal numeric entity is encoded as
+# Test that every numeric entity is encoded as
 # it should be.
-ILLEGAL_NUMERIC_ENT_RANGES = (
+ILLEGAL_NUMERIC_ENTS = frozenset(itertools.chain(
     xrange(0, 9),
     xrange(11, 13),
     xrange(14, 32),
     xrange(55296, 57344),
     xrange(65534, 65536),
-)
+))
 
-invalid_ent_test_key = ''
-invalid_ent_test_val = ''
-for i in itertools.chain(*ILLEGAL_NUMERIC_ENT_RANGES):
-    invalid_ent_test_key += '&#%d;' % i
-    invalid_ent_test_val += '&amp;#%d;' % i
+ent_test_key = ''
+ent_test_val = ''
+for i in xrange(65550):
+    ent_testcase = '&#%d;&#x%x;' % (i, i)
+    ent_test_key += ent_testcase
+    if i in ILLEGAL_NUMERIC_ENTS:
+        ent_test_val += ent_testcase.replace('&', '&amp;')
+    else:
+        ent_test_val += ent_testcase
 
-cases[invalid_ent_test_key] = '<p>%s</p>\n' % invalid_ent_test_val
+cases[ent_test_key] = '<p>%s</p>\n' % ent_test_val
 
 wiki_cases = {
     '<table scope="foo"bar>':

@@ -15,6 +15,9 @@ cases = {
     'http://www.reddit.com/a\x00b':
         '<p><a href="http://www.reddit.com/ab">http://www.reddit.com/ab</a></p>\n',
 
+    'foo@example.com':
+        '<p><a href="mailto:foo@example.com">foo@example.com</a></p>\n',
+
     '[foo](http://en.wikipedia.org/wiki/Link_(film\))':
         '<p><a href="http://en.wikipedia.org/wiki/Link_(film)">foo</a></p>\n',
 

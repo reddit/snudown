@@ -52,7 +52,7 @@ afl: gen_testcases snudown-validator
 	$(AFL_PATH)/afl-fuzz \
 	    -i testing/testcases \
 	    -o testing/afl_results \
-	    -t 35 \
+	    -t 100 \
 	    -m none \
 	    ./build/snudown-validator
 

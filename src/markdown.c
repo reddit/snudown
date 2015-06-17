@@ -405,6 +405,9 @@ find_emph_char(uint8_t *data, size_t size, uint8_t c)
 		if (i == size)
 			return 0;
 
+		if (i - 1 > size && c == '<' && data[i] == c && data[i - 1] == '!')
+			return i;
+
 		if (data[i] == c)
 			return i;
 
@@ -593,6 +596,37 @@ parse_emph3(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size
 	return 0;
 }
 
+/* parse_spoilerspan • parsing spoiler emphase */
+static size_t
+parse_spoilerspan(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size, uint8_t c)
+{
+	int (*render_method)(struct buf *ob, const struct buf *text, void *opaque);
+	size_t i = 0, len;
+	struct buf *work = 0;
+	int r;
+
+	render_method = rndr->cb.spoilerspan;
+
+	if (!render_method)
+		return 0;
+
+	while (i < size) {
+		len = find_emph_char(data + i, size - i, '<');
+		if (!len) return 0;
+		i += len;
+
+		if (i < size && data[i] == '<' && data[i - 1] == '!' && i && !_isspace(data[i - 2])) {
+			work = rndr_newbuf(rndr, BUFFER_SPAN);
+			parse_inline(work, rndr, data, i - 1);
+			r = render_method(ob, work, rndr->opaque);
+			rndr_popbuf(rndr, BUFFER_SPAN);
+			return r ? i + 1 : 0;
+		}
+		i++;
+	}
+	return 0;
+}
+
 /* char_emphasis • single and double emphasis parsing */
 static size_t
 char_emphasis(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t max_lookbehind, size_t size)
@@ -600,24 +634,31 @@ char_emphasis(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t ma
 	uint8_t c = data[0];
 	size_t ret;
 
+	if (size > 3 && c == '>' && data[1] == '!') {
+		if (_isspace(data[2]) || (ret = parse_spoilerspan(ob, rndr, data + 2, size - 2, c)) == 0)
+			return 0;
+
+		return ret + 2;
+	}
+
 	if (size > 2 && data[1] != c) {
 		/* whitespace cannot follow an opening emphasis;
 		 * strikethrough only takes two characters '~~' */
-		if (c == '~' || _isspace(data[1]) || (ret = parse_emph1(ob, rndr, data + 1, size - 1, c)) == 0)
+		if (c == '~' || c == '>' || _isspace(data[1]) || (ret = parse_emph1(ob, rndr, data + 1, size - 1, c)) == 0)
 			return 0;
 
 		return ret + 1;
 	}
 
 	if (size > 3 && data[1] == c && data[2] != c) {
-		if (_isspace(data[2]) || (ret = parse_emph2(ob, rndr, data + 2, size - 2, c)) == 0)
+		if (c == '>' || _isspace(data[2]) || (ret = parse_emph2(ob, rndr, data + 2, size - 2, c)) == 0)
 			return 0;
 
 		return ret + 2;
 	}
 
 	if (size > 4 && data[1] == c && data[2] == c && data[3] != c) {
-		if (c == '~' || _isspace(data[3]) || (ret = parse_emph3(ob, rndr, data + 3, size - 3, c)) == 0)
+		if (c == '~' || c == '>' || _isspace(data[3]) || (ret = parse_emph3(ob, rndr, data + 3, size - 3, c)) == 0)
 			return 0;
 
 		return ret + 3;
@@ -1403,11 +1444,44 @@ prefix_quote(uint8_t *data, size_t size)
 	if (i < size && data[i] == ' ') i++;
 	if (i < size && data[i] == ' ') i++;
 
-	if (i < size && data[i] == '>') {
+	if ((i < size && data[i] == '>') && (i + 1 < size && data[i + 1] != '!')) {
 		if (i + 1 < size && data[i + 1] == ' ')
 			return i + 2;
 
 		return i + 1;
+	}
+
+	return 0;
+}
+
+/* prefix_blockspoiler • returns spoiler blockquote prefix length */
+static size_t
+prefix_blockspoiler(uint8_t *data, size_t size)
+{
+	size_t i = 0;
+	if (i < size && data[i] == ' ') i++;
+	if (i < size && data[i] == ' ') i++;
+	if (i < size && data[i] == ' ') i++;
+
+	if (i + 1 < size && data[i] == '>' && data[i + 1] == '!') {
+		size_t tmp_i = 0;
+
+		tmp_i = i + 2;
+
+		while (tmp_i < size) {
+			if (data[tmp_i] == '!' && data[tmp_i - 1] == '>')
+				break;
+
+			if (data[tmp_i] == '!' && data[tmp_i + 1] == '<' && !_isspace(data[tmp_i - 1]) && i + 2 < size && !_isspace(data[i + 2]))
+				return 0;
+
+			tmp_i++;
+		}
+
+		if (i + 2 < size && data[i + 2] == ' ')
+			return i + 3;
+
+		return i + 2;
 	}
 
 	return 0;
@@ -1513,6 +1587,48 @@ parse_blockquote(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t
 	parse_block(out, rndr, work_data, work_size);
 	if (rndr->cb.blockquote)
 		rndr->cb.blockquote(ob, out, rndr->opaque);
+	rndr_popbuf(rndr, BUFFER_BLOCK);
+	return end;
+}
+
+/* parse_blockspoiler • handles parsing of a spoiler blockquote fragment */
+static size_t
+parse_blockspoiler(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size)
+{
+	size_t beg, end = 0, pre, work_size = 0;
+	uint8_t *work_data = 0;
+	struct buf *out = 0;
+
+	out = rndr_newbuf(rndr, BUFFER_BLOCK);
+	beg = 0;
+	while (beg < size) {
+		for (end = beg + 1; end < size && data[end - 1] != '\n'; end++);
+
+		pre = prefix_blockspoiler(data + beg, end - beg);
+
+		if (pre)
+			beg += pre; /* skipping prefix */
+
+		/* empty line followed by non-quote line */
+		else if (is_empty(data + beg, end - beg) &&
+				(end >= size || (prefix_blockspoiler(data + end, size - end) == 0 &&
+				!is_empty(data + end, size - end))))
+			break;
+
+		if (beg < end) { /* copy into the in-place working buffer */
+			/* bufput(work, data + beg, end - beg); */
+			if (!work_data)
+				work_data = data + beg;
+			else if (data + beg != work_data + work_size)
+				memmove(work_data + work_size, data + beg, end - beg);
+			work_size += end - beg;
+		}
+		beg = end;
+	}
+
+	parse_block(out, rndr, work_data, work_size);
+	if (rndr->cb.blockspoiler)
+		rndr->cb.blockspoiler(ob, out, rndr->opaque);
 	rndr_popbuf(rndr, BUFFER_BLOCK);
 	return end;
 }
@@ -2331,6 +2447,9 @@ parse_block(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size
 		else if (prefix_quote(txt_data, end))
 			beg += parse_blockquote(ob, rndr, txt_data, end);
 
+		else if (prefix_blockspoiler(txt_data, end))
+			beg += parse_blockspoiler(ob, rndr, txt_data, end);
+
 		else if (prefix_code(txt_data, end))
 			beg += parse_blockcode(ob, rndr, txt_data, end);
 
@@ -2522,6 +2641,7 @@ sd_markdown_new(
 		md->active_char['_'] = MD_CHAR_EMPHASIS;
 		if (extensions & MKDEXT_STRIKETHROUGH)
 			md->active_char['~'] = MD_CHAR_EMPHASIS;
+		md->active_char['>'] = MD_CHAR_EMPHASIS;
 	}
 
 	if (md->cb.codespan)

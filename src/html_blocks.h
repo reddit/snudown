@@ -187,7 +187,8 @@ find_block_tag (str, len)
       "", "", "",
       "h3",
       "", "", "", "",
-      "h2"
+      "h2",
+      "span"
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)

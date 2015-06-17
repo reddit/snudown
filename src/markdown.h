@@ -67,6 +67,7 @@ struct sd_callbacks {
 	/* block level callbacks - NULL skips the block */
 	void (*blockcode)(struct buf *ob, const struct buf *text, const struct buf *lang, void *opaque);
 	void (*blockquote)(struct buf *ob, const struct buf *text, void *opaque);
+	void (*blockspoiler)(struct buf *ob, const struct buf *text, void *opaque);
 	void (*blockhtml)(struct buf *ob,const  struct buf *text, void *opaque);
 	void (*header)(struct buf *ob, const struct buf *text, int level, void *opaque);
 	void (*hrule)(struct buf *ob, void *opaque);
@@ -81,6 +82,7 @@ struct sd_callbacks {
 	/* span level callbacks - NULL or return 0 prints the span verbatim */
 	int (*autolink)(struct buf *ob, const struct buf *link, enum mkd_autolink type, void *opaque);
 	int (*codespan)(struct buf *ob, const struct buf *text, void *opaque);
+	int (*spoilerspan)(struct buf *ob, const struct buf *text, void *opaque);
 	int (*double_emphasis)(struct buf *ob, const struct buf *text, void *opaque);
 	int (*emphasis)(struct buf *ob, const struct buf *text, void *opaque);
 	int (*image)(struct buf *ob, const struct buf *link, const struct buf *title, const struct buf *alt, void *opaque);

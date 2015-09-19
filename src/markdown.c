@@ -769,8 +769,33 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_
 		if (!is_valid_numeric_entity(entity_val))
 			return 0;
 	} else {
-		if (!is_allowed_named_entity((const char *)data, end))
+		/* Lookup the entity in the named entity table. */
+		const struct html_entity *entity = is_allowed_named_entity((const char *)data, end);
+		if (!entity)
 			return 0;
+		if (entity->codepoints[0]) {
+			/* Convert the entity to numeric entities. */
+			size_t entitystr_size = MAX_NUM_ENTITY_LEN+10;
+			char entitystr[entitystr_size];
+			int i;
+			for (i = 0; i < MAX_ENTITY_CODEPOINTS && entity->codepoints[i]; i++) {
+				/* Verify the codepoint is a valid entity. */
+				int entitystr_len;
+				entity_val = entity->codepoints[i];
+				assert(is_valid_numeric_entity(entity_val));
+				/* Render codepoint to an entity. */
+				entitystr_len = snprintf(entitystr, entitystr_size, "&#x%X;", entity_val);
+				assert(entitystr_len < entitystr_size);
+				if (rndr->cb.entity) {
+					work.data = entitystr;
+					work.size = entitystr_len;
+					rndr->cb.entity(ob, &work, rndr->opaque);
+				}
+				else
+					bufputs(ob, entitystr);
+			}
+			return end;
+		}
 	}
 
 	if (rndr->cb.entity) {

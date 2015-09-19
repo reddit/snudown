@@ -1,4 +1,5 @@
 from distutils.spawn import find_executable
+from distutils.dep_util import newer_group
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
@@ -6,6 +7,7 @@ import re
 import os
 import subprocess
 import fnmatch
+import json
 
 def c_files_in(directory):
     paths = []
@@ -15,10 +17,33 @@ def c_files_in(directory):
     return paths
 
 
-def process_gperf_file(gperf_file, output_file):
+def process_gperf_file(gperf_file, entities_file, output_file):
     if not find_executable("gperf"):
         raise Exception("Couldn't find `gperf`, is it installed?")
-    subprocess.check_call(["gperf", gperf_file, "--output-file=%s" % output_file])
+
+    # Do not rerun gperf if no change to input files
+    if not newer_group((gperf_file, entities_file), output_file):
+        return
+
+    gperf = subprocess.Popen(["gperf", "--output-file", output_file],
+                             stdin=subprocess.PIPE)
+
+    # Send gperf template
+    with open(gperf_file) as f:
+        gperf.stdin.write(f.read())
+
+    # Send entity list extracted from HTML5 spec JSON
+    with open(entities_file) as f:
+        for entity, entityinfo in sorted(json.load(f).items()):
+            if not entity.endswith(';'):
+                continue
+            gperf.stdin.write(entity + "\n")
+
+    # Wait for gperf to complete
+    gperf.stdin.close()
+    gperf.wait()
+    if gperf.returncode != 0:
+        raise subprocess.CalledProcessError(gperf.returncode, None, None)
 
 version = None
 version_re = re.compile(r'^#define\s+SNUDOWN_VERSION\s+"([^"]+)"$')
@@ -32,7 +57,8 @@ assert version
 
 class GPerfingBuildExt(build_ext):
     def run(self):
-        process_gperf_file("src/html_entities.gperf", "src/html_entities.h")
+        process_gperf_file("src/html_entities.gperf", "src/html_entities.json",
+                           "src/html_entities.h")
         build_ext.run(self)
 
 setup(
@@ -47,6 +73,7 @@ setup(
         Extension(
             name='snudown',
             sources=['snudown.c'] + c_files_in('src/') + c_files_in('html/'),
+            depends=['src/html_entities.h'],
             include_dirs=['src', 'html']
         )
     ],

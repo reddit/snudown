@@ -319,6 +319,9 @@ cases = {
     'aaa&frac12;aaa':
         '<p>aaa&frac12;aaa</p>\n',
 
+    '&checkmark;':
+        '<p>&checkmark;</p>\n',
+
     '&':
         '<p>&amp;</p>\n',
 

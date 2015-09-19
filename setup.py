@@ -36,40 +36,35 @@ def send_html_entities(entities_file, outfh, seen_entities):
             outfh.write(entity + ", {" + representation + "}\n")
 
 
-def process_gperf_file(gperf_file, entities_file, output_file):
+def process_gperf_file(gperf_file, entities_file, output_file, force=False):
     if not find_executable("gperf"):
         raise Exception("Couldn't find `gperf`, is it installed?")
 
     # Do not rerun gperf if no change to input files
-    if not newer_group((gperf_file, entities_file), output_file):
+    if not force and not newer_group((gperf_file, entities_file), output_file):
         return
 
-    gperf = subprocess.Popen(["gperf", "--output-file", output_file],
-                             stdin=subprocess.PIPE)
-
-    # Send gperf template
+    # Output combined gperf input file
+    gperf_temp_file = gperf_file + ".generated"
     seen_entities = set()
     found_separator = 0
-    with open(gperf_file) as f:
-        for line in f:
-            entity = line.strip()
-            if entity == '%%':
-                found_separator += 1
-                if found_separator == 2:
-                    send_html_entities(entities_file, gperf.stdin,
-                                       seen_entities)
-            elif found_separator == 1:
-                entity = entity.split()[0]
-                seen_entities.add(entity)
-            gperf.stdin.write(line)
-        if found_separator < 2:
-            send_html_entities(entities_file, gperf.stdin, seen_entities)
+    with open(gperf_temp_file, 'w') as outfh:
+        with open(gperf_file) as f:
+            for line in f:
+                entity = line.strip()
+                if entity == '%%':
+                    found_separator += 1
+                    if found_separator == 2:
+                        send_html_entities(entities_file, outfh, seen_entities)
+                elif found_separator == 1:
+                    entity = entity.split()[0]
+                    seen_entities.add(entity)
+                outfh.write(line)
+            if found_separator < 2:
+                send_html_entities(entities_file, outfh, seen_entities)
 
-    # Wait for gperf to complete
-    gperf.stdin.close()
-    gperf.wait()
-    if gperf.returncode != 0:
-        raise subprocess.CalledProcessError(gperf.returncode, "gperf", None)
+    subprocess.check_call(["gperf", gperf_temp_file,
+                           "--output-file", output_file])
 
 version = None
 version_re = re.compile(r'^#define\s+SNUDOWN_VERSION\s+"([^"]+)"$')
@@ -84,7 +79,7 @@ assert version
 class GPerfingBuildExt(build_ext):
     def run(self):
         process_gperf_file("src/html_entities.gperf", "src/html_entities.json",
-                           "src/html_entities.h")
+                           "src/html_entities.h", force=self.force)
         build_ext.run(self)
 
 setup(

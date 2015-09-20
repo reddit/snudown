@@ -25,13 +25,15 @@ def send_html_entities(entities_file, outfh, seen_entities):
             if entity in seen_entities:
                 continue
             seen_entities.add(entity)
+
             # Some sanity checks on the codepoints
             assert len(entityinfo['codepoints']) <= 2
-            for bad_range in [xrange(0, 8), xrange(11, 12), xrange(14, 31),
-                              xrange(55296, 57343), xrange(65534, 65535)]:
+            for bad_range in [xrange(0, 9), xrange(11, 13), xrange(14, 32),
+                              xrange(55296, 57344), xrange(65534, 65536)]:
                 for codepoint in entityinfo['codepoints']:
                     assert codepoint not in bad_range
             representation = ",".join(str(x) for x in entityinfo['codepoints'])
+
             # Output the entity
             outfh.write(entity + ", {" + representation + "}\n")
 
@@ -44,7 +46,10 @@ def process_gperf_file(gperf_file, entities_file, output_file, force=False):
     if not force and not newer_group((gperf_file, entities_file), output_file):
         return
 
-    # Output combined gperf input file
+    # Combine HTML5 entity data into the gperf input file. HTML5
+    # entities are translated to numeric entities at runtime, as
+    # opposed to the entities already in the gperf file which are
+    # output verbatim.
     gperf_temp_file = gperf_file + ".generated"
     seen_entities = set()
     found_separator = 0
@@ -52,15 +57,25 @@ def process_gperf_file(gperf_file, entities_file, output_file, force=False):
         with open(gperf_file) as f:
             for line in f:
                 entity = line.strip()
+                # gperf files are divided into three sections, divided
+                # by `%%` lines. The first is for declarations, the
+                # second is the list of keywords, and the third is for
+                # functions (which are included verbatim in the
+                # output). We want to add the HTML5 entities to the
+                # end of the second section (i.e. right before the
+                # third section).
                 if entity == '%%':
                     found_separator += 1
                     if found_separator == 2:
                         send_html_entities(entities_file, outfh, seen_entities)
                 elif found_separator == 1:
+                    # Track the entities we've seen so far so that we
+                    # don't repeat them.
                     entity = entity.split()[0]
                     seen_entities.add(entity)
                 outfh.write(line)
             if found_separator < 2:
+                # The gperf file contains no third section.
                 send_html_entities(entities_file, outfh, seen_entities)
 
     subprocess.check_call(["gperf", gperf_temp_file,

@@ -774,8 +774,10 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_
 		if (!entity)
 			return 0;
 		if (entity->codepoints[0]) {
-			/* Convert the entity to numeric entities. */
-			size_t entitystr_size = MAX_NUM_ENTITY_LEN+10;
+			/* Convert the entity to numeric entities.
+                         * (MAX_NUM_ENTITY_LEN digits + `&#x;` + NULL)
+                         */
+			size_t entitystr_size = MAX_NUM_ENTITY_LEN + 5;
 			char entitystr[entitystr_size];
 			int i;
 			for (i = 0; i < MAX_ENTITY_CODEPOINTS && entity->codepoints[i]; i++) {

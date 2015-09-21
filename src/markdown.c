@@ -771,7 +771,7 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_
 			return 0;
 	} else {
 		/* Lookup the entity in the named entity table. */
-		named_entity = is_allowed_named_entity((const char *)data, end);
+		named_entity = resolve_named_entity((const char *)data, end);
 		if (!named_entity)
 			return 0;
 	}

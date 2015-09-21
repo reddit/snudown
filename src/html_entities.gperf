@@ -1,5 +1,5 @@
 %language=ANSI-C
-%define lookup-function-name is_allowed_named_entity
+%define lookup-function-name resolve_named_entity
 %compare-strncmp
 %readonly-tables
 %define hash-function-name hash_html_entity

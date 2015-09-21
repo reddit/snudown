@@ -721,6 +721,7 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_
 	int hex = 0;
 	int entity_base;
 	uint32_t entity_val;
+	const struct html_entity *named_entity = NULL;
 
 	if (end < size && data[end] == '#') {
 		numeric = 1;
@@ -770,40 +771,26 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_
 			return 0;
 	} else {
 		/* Lookup the entity in the named entity table. */
-		const struct html_entity *entity = is_allowed_named_entity((const char *)data, end);
-		if (!entity)
+		named_entity = is_allowed_named_entity((const char *)data, end);
+		if (!named_entity)
 			return 0;
-		if (entity->codepoints[0]) {
-			/* Convert the entity to numeric entities.
-                         * (MAX_NUM_ENTITY_LEN digits + `&#x;` + NULL)
-                         */
-			size_t entitystr_size = MAX_NUM_ENTITY_LEN + 5;
-			char entitystr[entitystr_size];
-			int i;
-			for (i = 0; i < MAX_ENTITY_CODEPOINTS && entity->codepoints[i]; i++) {
-				/* Verify the codepoint is a valid entity. */
-				int entitystr_len;
-				entity_val = entity->codepoints[i];
-				assert(is_valid_numeric_entity(entity_val));
-				/* Render codepoint to an entity. */
-				entitystr_len = snprintf(entitystr, entitystr_size, "&#x%X;", entity_val);
-				assert(entitystr_len < entitystr_size);
-				if (rndr->cb.entity) {
-					work.data = entitystr;
-					work.size = entitystr_len;
-					rndr->cb.entity(ob, &work, rndr->opaque);
-				}
-				else
-					bufputs(ob, entitystr);
-			}
-			return end;
-		}
 	}
 
 	if (rndr->cb.entity) {
 		work.data = data;
 		work.size = end;
 		rndr->cb.entity(ob, &work, rndr->opaque);
+	} else if (named_entity && named_entity->output_numeric) {
+		/* Output the named entity as numeric entities. */
+		int i;
+		assert(named_entity->output_numeric <= MAX_ENTITY_CODEPOINTS);
+		for (i = 0; i < named_entity->output_numeric; i++) {
+			/* Verify the codepoint is a valid entity. */
+			entity_val = named_entity->codepoints[i];
+			assert(is_valid_numeric_entity(entity_val));
+			/* Render codepoint to an entity. */
+			bufprintf(ob, "&#x%X;", entity_val);
+		}
 	} else {
 		/* Necessary so we can normalize `&#X3E;` to `&#x3E;` */
 		bufputc(ob, '&');

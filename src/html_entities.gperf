@@ -41,7 +41,11 @@ inline int is_valid_numeric_entity(uint32_t entity_val)
 %struct-type
 %define slot-name entity
 struct html_entity {
+	/* Entity string */
 	const char *entity;
+	/* Number of codepoints; 0 for raw output. */
+	const int output_numeric;
+	/* Codepoint numbers for numeric output. */
 	const int codepoints[MAX_ENTITY_CODEPOINTS];
 }
 %%

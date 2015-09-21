@@ -27,15 +27,16 @@ def send_html_entities(entities_file, outfh, seen_entities):
             seen_entities.add(entity)
 
             # Some sanity checks on the codepoints
-            assert len(entityinfo['codepoints']) <= 2
+            ncodepoints = len(entityinfo['codepoints'])
+            assert ncodepoints <= 2 # MAX_ENTITY_CODEPOINTS
             for bad_range in [xrange(0, 9), xrange(11, 13), xrange(14, 32),
                               xrange(55296, 57344), xrange(65534, 65536)]:
                 for codepoint in entityinfo['codepoints']:
                     assert codepoint not in bad_range
-            representation = ",".join(str(x) for x in entityinfo['codepoints'])
+            codepoints = ",".join(str(x) for x in entityinfo['codepoints'])
 
             # Output the entity
-            outfh.write(entity + ", {" + representation + "}\n")
+            outfh.write("%s, %d, {%s}\n" % (entity, ncodepoints, codepoints))
 
 
 def process_gperf_file(gperf_file, entities_file, output_file, force=False):

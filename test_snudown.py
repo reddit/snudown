@@ -333,7 +333,73 @@ cases = {
 
     '&#x;':
         '<p>&amp;#x;</p>\n',
+    '> quotey mcquoteface':
+        '<blockquote>\n<p>quotey mcquoteface</p>\n</blockquote>\n',
+
+    '> quotey mcquoteface\nnew line of text what happens?':
+        '<blockquote>\n<p>quotey mcquoteface\nnew line of text what happens?</p>\n</blockquote>\n',
+
+    '> quotey mcquoteface\n\ntwo new lines then text what happens?':
+        '<blockquote>\n<p>quotey mcquoteface</p>\n</blockquote>\n\n<p>two new lines then text what happens?</p>\n',
+
+    '> quotey mcquoteface\n> more quotey':
+        '<blockquote>\n<p>quotey mcquoteface\nmore quotey</p>\n</blockquote>\n',
+
+    '> quotey macquoteface\n\n> another quotey':
+        '<blockquote>\n<p>quotey macquoteface</p>\n\n<p>another quotey</p>\n</blockquote>\n',
+
+    '>! spoily mcspoilerface':
+        '<blockquote class="md-spoiler-text">\n<p>spoily mcspoilerface</p>\n</blockquote>\n',
+
+    '>! spoily mcspoilerface\nmore spoilage goes here':
+        '<blockquote class="md-spoiler-text">\n<p>spoily mcspoilerface\nmore spoilage goes here</p>\n</blockquote>\n',
+
+    '>! spoily mcspoilerface > incorrect quote syntax':
+        '<blockquote class="md-spoiler-text">\n<p>spoily mcspoilerface &gt; incorrect quote syntax</p>\n</blockquote>\n',
+
+    '>! spoily mcspoilerface\n\n':
+        '<blockquote class="md-spoiler-text">\n<p>spoily mcspoilerface</p>\n</blockquote>\n',
+
+    '>! spoily mcspoilerface\n\nnormal text here':
+        '<blockquote class="md-spoiler-text">\n<p>spoily mcspoilerface</p>\n</blockquote>\n\n<p>normal text here</p>\n',
+
+    '>! spoily mcspoilerface\n>! blockspoiler continuation':
+        '<blockquote class="md-spoiler-text">\n<p>spoily mcspoilerface\nblockspoiler continuation</p>\n</blockquote>\n',
+
+    '>! spoily mcspoilerface\n> quotey mcquoteface':
+        '<blockquote class="md-spoiler-text">\n<p>spoily mcspoilerface</p>\n\n<blockquote>\n<p>quotey mcquoteface</p>\n</blockquote>\n</blockquote>\n',
+
+    '>! spoiler p1\n>!\n>! spoiler p2\n>! spoiler p3':
+        '<blockquote class="md-spoiler-text">\n<p>spoiler p1</p>\n\n<p>spoiler p2\nspoiler p3</p>\n</blockquote>\n',
+
+    '>>! spoiler p1\n>!\n>! spoiler p2\n>! spoiler p3':
+        '<blockquote>\n<blockquote class="md-spoiler-text">\n<p>spoiler p1</p>\n\n<p>spoiler p2\nspoiler p3</p>\n</blockquote>\n</blockquote>\n',
+
+    '>>! spoiler p1\n>!\n>! spoiler p2\n\nnew text':
+        '<blockquote>\n<blockquote class="md-spoiler-text">\n<p>spoiler p1</p>\n\n<p>spoiler p2</p>\n</blockquote>\n</blockquote>\n\n<p>new text</p>\n',
+
+    '>>! spoiler p1\n>!\n>! spoiler p2\n\n>! new blockspoiler':
+        '<blockquote>\n<blockquote class="md-spoiler-text">\n<p>spoiler p1</p>\n\n<p>spoiler p2</p>\n</blockquote>\n</blockquote>\n\n<blockquote class="md-spoiler-text">\n<p>new blockspoiler</p>\n</blockquote>\n',
+
+    '! this is not a spoiler':
+        '<p>! this is not a spoiler</p>\n',
+
+    '>!\nTesting':
+        '<blockquote class="md-spoiler-text">\n<p>Testing</p>\n</blockquote>\n',
+
+    '>!\n\nTesting':
+        '<blockquote class="md-spoiler-text">\n</blockquote>\n\n<p>Testing</p>\n',
+
+    '>!':
+        '<blockquote class="md-spoiler-text">\n</blockquote>\n',
+    '>!\n>!':
+        '<blockquote class="md-spoiler-text">\n</blockquote>\n',
+    '>':
+        '<blockquote>\n</blockquote>\n',
+    '> some quote goes here\n>':
+        '<blockquote>\n<p>some quote goes here</p>\n</blockquote>\n',
 }
+
 
 # Test that every numeric entity is encoded as
 # it should be.
@@ -459,3 +525,7 @@ def test_snudown():
         suite.addTest(case)
 
     return suite
+
+if __name__ == '__main__':
+    runner = unittest.TextTestRunner()
+    runner.run(test_snudown())

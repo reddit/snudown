@@ -11,6 +11,15 @@ Install
 Run `setup.py install` to install the module.
 
 
+Setup for development on Mac OS X
+---------------------------------
+
+For Mac OS X:
+1. Install `afl-fuzz` via homebrew: `brew install afl-fuzz`
+3. You can now install the module via `python setup.py install`
+4. You may also compile snudown using the Makefile directly if you so wish
+
+
 Thanks
 ------
 

@@ -12,6 +12,18 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+OS := $(shell uname)
+
+ifeq ($(OS), Darwin)
+    AFL_COMPILER := "afl-clang"
+else
+    AFL_COMPILIER := "afl-gcc"
+endif
+
+ifneq ($(AFL_PATH),)
+    AFL_COMPILER := $(AFL_PATH)/$(AFL_COMPILER)
+endif
+
 all:		gumbo_snudown snudown-validator
 
 .PHONY:		all clean gumbo_snudown snudown-validator build_dir
@@ -37,7 +49,7 @@ gperf_src:
 
 # executable
 snudown-validator: build_dir gumbo_snudown gperf_src
-	cd build && cmake .. -DCMAKE_C_COMPILER=$(AFL_PATH)/afl-gcc
+	cd build && cmake .. -DCMAKE_C_COMPILER=$(AFL_COMPILER)
 	$(MAKE) -C build all
 
 # stuff for fuzzing

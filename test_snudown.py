@@ -422,6 +422,64 @@ wiki_cases = {
         '<p><table scope="foo"></p>\n',
 }
 
+
+no_links_cases = {
+    'http://www.reddit.com':
+        '<p>http://www.reddit.com</p>\n',
+
+    'http://www.reddit.com/a\x00b':
+        '<p>http://www.reddit.com/ab</p>\n',
+
+    'ampersands http://www.google.com?test&blah':
+        '<p>ampersands http://www.google.com?test&amp;blah</p>\n',
+
+    'www.http://example.com/':
+        '<p>www.http://example.com/</p>\n',
+
+    'foo@example.com':
+        '<p>foo@example.com</p>\n', 
+        
+    '/u/test/m/test test':
+        '<p>/u/test/m/test test</p>\n',
+
+    '/u/test':
+        '<p>/u/test</p>\n',
+
+    '/r/not.cool':
+        '<p>/r/not.cool</p>\n',
+
+    'u/test':
+        '<p>u/test</p>\n',
+
+    '/r/whatever: fork':
+        '<p>/r/whatever: fork</p>\n',
+
+    '/r/t:timereddit':
+        '<p>/r/t:timereddit</p>\n',
+
+    '/r/reddit.com':
+        '<p>/r/reddit.com</p>\n',
+
+    'r/not.cool':
+        '<p>r/not.cool</p>\n',
+
+    '/r/very+clever+multireddit+reddit.com+t:fork+yay':
+        '<p>/r/very+clever+multireddit+reddit.com+t:fork+yay</p>\n',
+
+    '/r/t:heatdeathoftheuniverse':
+        '<p>/r/t:heatdeathoftheuniverse</p>\n',
+
+    '/r/all-minus-something':
+        '<p>/r/all-minus-something</p>\n',
+
+    r'escaped \/r/test':
+        '<p>escaped /r/test</p>\n',
+
+    'Words words /r/test words':
+        '<p>Words words /r/test words</p>\n',
+}
+
+
 class SnudownTestCase(unittest.TestCase):
     def __init__(self, renderer=snudown.RENDERER_USERTEXT):
         self.renderer = renderer
@@ -457,5 +515,11 @@ def test_snudown():
         case.input = input
         case.expected_output = expected_output
         suite.addTest(case)
+
+    for input, expected_output in no_links_cases.iteritems():
+        case = SnudownTestCase(renderer=snudown.RENDERER_USERTEXT_WITHOUTLINKS)
+        case.input = input
+        case.expected_output = expected_output
+        suite.addTest(case)        
 
     return suite

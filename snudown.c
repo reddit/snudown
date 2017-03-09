@@ -10,6 +10,7 @@
 enum snudown_renderer_mode {
 	RENDERER_USERTEXT = 0,
 	RENDERER_WIKI,
+	RENDERER_USERTEXT_WITHOUTLINKS,
 	RENDERER_COUNT
 };
 
@@ -49,6 +50,12 @@ static const unsigned int snudown_default_md_flags =
 	MKDEXT_NO_INTRA_EMPHASIS |
 	MKDEXT_SUPERSCRIPT |
 	MKDEXT_AUTOLINK |
+	MKDEXT_STRIKETHROUGH |
+	MKDEXT_TABLES;
+
+static const unsigned int snudown_default_md_flags_without_links =
+	MKDEXT_NO_INTRA_EMPHASIS |
+	MKDEXT_SUPERSCRIPT |
 	MKDEXT_STRIKETHROUGH |
 	MKDEXT_TABLES;
 
@@ -121,6 +128,14 @@ void init_wiki_renderer(PyObject *module) {
 	sundown[RENDERER_WIKI].toc_renderer = make_custom_renderer(&wiki_toc_state, snudown_wiki_render_flags, snudown_default_md_flags, 1);
 	sundown[RENDERER_WIKI].state = &wiki_state;
 	sundown[RENDERER_WIKI].toc_state = &wiki_toc_state;
+}
+
+void init_default_renderer_without_links(PyObject *module) {
+	PyModule_AddIntConstant(module, "RENDERER_USERTEXT_WITHOUTLINKS", RENDERER_USERTEXT_WITHOUTLINKS);
+	sundown[RENDERER_USERTEXT_WITHOUTLINKS].main_renderer = make_custom_renderer(&usertext_state, snudown_default_render_flags, snudown_default_md_flags_without_links, 0);
+	sundown[RENDERER_USERTEXT_WITHOUTLINKS].toc_renderer = make_custom_renderer(&usertext_toc_state, snudown_default_render_flags, snudown_default_md_flags_without_links, 1);
+	sundown[RENDERER_USERTEXT_WITHOUTLINKS].state = &usertext_state;
+	sundown[RENDERER_USERTEXT_WITHOUTLINKS].toc_state = &usertext_toc_state;
 }
 
 static PyObject *
@@ -206,6 +221,7 @@ PyMODINIT_FUNC initsnudown(void)
 
 	init_default_renderer(module);
 	init_wiki_renderer(module);
+	init_default_renderer_without_links(module);
 
 	/* Version */
 	PyModule_AddStringConstant(module, "__version__", SNUDOWN_VERSION);

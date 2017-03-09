@@ -22,6 +22,7 @@
 enum snudown_renderer_mode {
 	RENDERER_USERTEXT = 0,
 	RENDERER_WIKI,
+	RENDERER_USERTEXT_WITHOUTLINKS,
 	RENDERER_COUNT
 };
 
@@ -57,6 +58,12 @@ static const unsigned int snudown_default_md_flags =
 	MKDEXT_NO_INTRA_EMPHASIS |
 	MKDEXT_SUPERSCRIPT |
 	MKDEXT_AUTOLINK |
+	MKDEXT_STRIKETHROUGH |
+	MKDEXT_TABLES;
+
+static const unsigned int snudown_default_md_flags_without_links =
+	MKDEXT_NO_INTRA_EMPHASIS |
+	MKDEXT_SUPERSCRIPT |
 	MKDEXT_STRIKETHROUGH |
 	MKDEXT_TABLES;
 
@@ -129,6 +136,13 @@ void init_wiki_renderer() {
 	sundown[RENDERER_WIKI].toc_state = &wiki_toc_state;
 }
 
+void init_default_renderer_without_links() {
+	sundown[RENDERER_USERTEXT_WITHOUTLINKS].main_renderer = make_custom_renderer(&usertext_state, snudown_default_render_flags, snudown_default_md_flags_without_links, 0);
+	sundown[RENDERER_USERTEXT_WITHOUTLINKS].toc_renderer = make_custom_renderer(&usertext_toc_state, snudown_default_render_flags, snudown_default_md_flags_without_links, 1);
+	sundown[RENDERER_USERTEXT_WITHOUTLINKS].state = &usertext_state;
+	sundown[RENDERER_USERTEXT_WITHOUTLINKS].toc_state = &usertext_toc_state;
+}
+
 void
 snudown_md(struct buf *ob, const uint8_t *document, size_t doc_size, int wiki_mode)
 {
@@ -172,6 +186,7 @@ main(int argc, char **argv)
 {
 	init_default_renderer();
 	init_wiki_renderer();
+	init_default_renderer_without_links();
 
 	struct buf *ib, *ob;
 	int size_read = 0, wiki_mode = 0, i = 0, have_errors = 0;

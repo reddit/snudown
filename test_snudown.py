@@ -437,7 +437,13 @@ no_links_cases = {
         '<p>www.http://example.com/</p>\n',
 
     'foo@example.com':
-        '<p>foo@example.com</p>\n', 
+        '<p>foo@example.com</p>\n',
+
+    '[foo](/u/bar)':
+        '<p>[foo](/u/bar)</p>\n',    
+
+    '</u/foobar>':
+        '<p>&lt;/u/foobar&gt;</p>\n',                  
         
     '/u/test/m/test test':
         '<p>/u/test/m/test test</p>\n',

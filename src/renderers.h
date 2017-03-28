@@ -1,7 +1,7 @@
-/* snudown.h - header for snudown */
+/* renderers.h - header for renderers */
 
 /*
-* Copyright (c) 2017, Evgenii Timofeev
+* Copyright (c) 2017, Reddit
 *
 * Permission to use, copy, modify, and distribute this software for any
 * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
-#include "html/html.h"
+#include "../html/html.h"
 
 enum snudown_renderer_mode {
 	RENDERER_USERTEXT = 0,
@@ -72,47 +72,14 @@ static const unsigned int snudown_wiki_render_flags =
 	HTML_ESCAPE |
 	HTML_USE_XHTML;
 
-static struct snudown_renderer sundown[RENDERER_COUNT];
+static void 
+snudown_link_attr(struct buf *ob, const struct buf *link, void *opaque);
 
-static struct module_state usertext_toc_state;
-static struct module_state wiki_toc_state;
-static struct module_state usertext_state;
-static struct module_state wiki_state;
+extern struct snudown_renderer *
+get_default_renderer(void);
 
-static void snudown_link_attr(struct buf *ob, const struct buf *link, void *opaque);
+extern struct snudown_renderer *
+get_wiki_renderer(void);
 
-static struct sd_markdown* make_custom_renderer(struct module_state* state,
-	const unsigned int renderflags,
-	const unsigned int markdownflags,
-	int toc_renderer) {
-	if (toc_renderer) {
-		sdhtml_toc_renderer(&state->callbacks,
-			(struct html_renderopt *)&state->options);
-	}
-	else {
-		sdhtml_renderer(&state->callbacks,
-			(struct html_renderopt *)&state->options,
-			renderflags);
-	}
-
-	state->options.html.link_attributes = &snudown_link_attr;
-	state->options.html.html_element_whitelist = html_element_whitelist;
-	state->options.html.html_attr_whitelist = html_attr_whitelist;
-
-	return sd_markdown_new(
-		markdownflags,
-		16,
-		64,
-		&state->callbacks,
-		&state->options
-	);
-}
-
-extern void 
-init_default_renderer(void);
-
-extern void 
-init_wiki_renderer(void);
-
-extern void 
-init_default_renderer_without_links(void);
+extern struct snudown_renderer *
+get_default_renderer_without_links(void);

@@ -3,63 +3,33 @@
 
 #include "markdown.h"
 #include "autolink.h"
+#include "renderers.h"
 #include "snudown.h"
 
-#define SNUDOWN_VERSION "1.4.0"
+#define SNUDOWN_VERSION "1.5.0"
 
 /* The module doc strings */
 PyDoc_STRVAR(snudown_module__doc__, "When does the narwhal bacon? At Sundown.");
 PyDoc_STRVAR(snudown_md__doc__, "Render a Markdown document");
 
-static void
-snudown_link_attr(struct buf *ob, const struct buf *link, void *opaque)
-{
-	struct snudown_renderopt *options = opaque;
-
-	if (options->nofollow)
-		BUFPUTSL(ob, " rel=\"nofollow\"");
-
-	if (options->target != NULL) {
-		BUFPUTSL(ob, " target=\"");
-		bufputs(ob, options->target);
-		bufputc(ob, '\"');
-	}
-}
-
-void init_default_renderer() {
-	sundown[RENDERER_USERTEXT].main_renderer = make_custom_renderer(&usertext_state, snudown_default_render_flags, snudown_default_md_flags, 0);
-	sundown[RENDERER_USERTEXT].toc_renderer = make_custom_renderer(&usertext_toc_state, snudown_default_render_flags, snudown_default_md_flags, 1);
-	sundown[RENDERER_USERTEXT].state = &usertext_state;
-	sundown[RENDERER_USERTEXT].toc_state = &usertext_toc_state;
-}
-
-void init_wiki_renderer() {
-	sundown[RENDERER_WIKI].main_renderer = make_custom_renderer(&wiki_state, snudown_wiki_render_flags, snudown_default_md_flags, 0);
-	sundown[RENDERER_WIKI].toc_renderer = make_custom_renderer(&wiki_toc_state, snudown_wiki_render_flags, snudown_default_md_flags, 1);
-	sundown[RENDERER_WIKI].state = &wiki_state;
-	sundown[RENDERER_WIKI].toc_state = &wiki_toc_state;
-}
-
-void init_default_renderer_without_links() {
-	sundown[RENDERER_USERTEXT_WITHOUTLINKS].main_renderer = make_custom_renderer(&usertext_state, snudown_default_render_flags, snudown_default_md_flags_without_links, 0);
-	sundown[RENDERER_USERTEXT_WITHOUTLINKS].toc_renderer = make_custom_renderer(&usertext_toc_state, snudown_default_render_flags, snudown_default_md_flags_without_links, 1);
-	sundown[RENDERER_USERTEXT_WITHOUTLINKS].state = &usertext_state;
-	sundown[RENDERER_USERTEXT_WITHOUTLINKS].toc_state = &usertext_toc_state;
-}
+static struct snudown_renderer sundown[RENDERER_COUNT];
 
 void register_default_renderer(PyObject *module) {
 	PyModule_AddIntConstant(module, "RENDERER_USERTEXT", RENDERER_USERTEXT);
-	init_default_renderer();
+	struct snudown_renderer *renderer = get_default_renderer();
+	sundown[RENDERER_USERTEXT] = *renderer;
 }
 
 void register_wiki_renderer(PyObject *module) {
 	PyModule_AddIntConstant(module, "RENDERER_WIKI", RENDERER_WIKI);
-	init_wiki_renderer();
+	struct snudown_renderer *renderer = get_wiki_renderer();
+	sundown[RENDERER_WIKI] = *renderer;
 }
 
 void register_default_renderer_without_links(PyObject *module) {
 	PyModule_AddIntConstant(module, "RENDERER_USERTEXT_WITHOUTLINKS", RENDERER_USERTEXT_WITHOUTLINKS);
-	init_default_renderer_without_links();
+	struct snudown_renderer *renderer = get_default_renderer_without_links();
+	sundown[RENDERER_USERTEXT_WITHOUTLINKS] = *renderer;
 }
 
 static PyObject *

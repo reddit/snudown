@@ -4,7 +4,6 @@
 #include "markdown.h"
 #include "autolink.h"
 #include "renderers.h"
-#include "snudown.h"
 
 #define SNUDOWN_VERSION "1.5.0"
 

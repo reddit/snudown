@@ -423,7 +423,7 @@ wiki_cases = {
 }
 
 
-no_links_cases = {
+no_autolinks_cases = {
     'http://www.reddit.com':
         '<p>http://www.reddit.com</p>\n',
 
@@ -440,7 +440,7 @@ no_links_cases = {
         '<p>foo@example.com</p>\n',
 
     '[foo](/u/bar)':
-        '<p>[foo](/u/bar)</p>\n',    
+        '<p><a href="/u/bar">foo</a></p>\n',    
 
     '</u/foobar>':
         '<p>&lt;/u/foobar&gt;</p>\n',                  
@@ -522,7 +522,7 @@ def test_snudown():
         case.expected_output = expected_output
         suite.addTest(case)
 
-    for input, expected_output in no_links_cases.iteritems():
+    for input, expected_output in no_autolinks_cases.iteritems():
         case = SnudownTestCase(renderer=snudown.RENDERER_USERTEXT_WITHOUTLINKS)
         case.input = input
         case.expected_output = expected_output

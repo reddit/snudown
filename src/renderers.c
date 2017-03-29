@@ -6,6 +6,8 @@ static struct module_state usertext_toc_state;
 static struct module_state wiki_toc_state;
 static struct module_state usertext_state;
 static struct module_state wiki_state;
+static char* html_element_whitelist[] = { "tr", "th", "td", "table", "tbody", "thead", "tfoot", "caption", NULL };
+static char* html_attr_whitelist[] = { "colspan", "rowspan", "cellspacing", "cellpadding", "scope", NULL };
 
 static struct sd_markdown *make_custom_renderer(struct module_state *state,
 	const unsigned int renderflags,

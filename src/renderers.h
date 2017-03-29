@@ -42,9 +42,6 @@ struct module_state {
 	struct snudown_renderopt options;
 };
 
-static char* html_element_whitelist[] = { "tr", "th", "td", "table", "tbody", "thead", "tfoot", "caption", NULL };
-static char* html_attr_whitelist[] = { "colspan", "rowspan", "cellspacing", "cellpadding", "scope", NULL };
-
 static const unsigned int snudown_default_md_flags =
 	MKDEXT_NO_INTRA_EMPHASIS |
 	MKDEXT_SUPERSCRIPT |

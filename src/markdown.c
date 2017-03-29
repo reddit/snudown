@@ -2530,6 +2530,9 @@ sd_markdown_new(
 	if (md->cb.linebreak)
 		md->active_char['\n'] = MD_CHAR_LINEBREAK;
 
+	if (md->cb.image || md->cb.link)
+		md->active_char['['] = MD_CHAR_LINK;
+
 	md->active_char['<'] = MD_CHAR_LANGLE;
 	md->active_char['\\'] = MD_CHAR_ESCAPE;
 	md->active_char['&'] = MD_CHAR_ENTITITY;
@@ -2537,8 +2540,6 @@ sd_markdown_new(
 	if (extensions & MKDEXT_AUTOLINK) {
 		if (!(extensions & MKDEXT_NO_EMAIL_AUTOLINK))
 			md->active_char['@'] = MD_CHAR_AUTOLINK_EMAIL;
-		if (md->cb.image || md->cb.link)
-			md->active_char['['] = MD_CHAR_LINK;
 		md->active_char[':'] = MD_CHAR_AUTOLINK_URL;
 		md->active_char['w'] = MD_CHAR_AUTOLINK_WWW;
 		md->active_char['/'] = MD_CHAR_AUTOLINK_SUBREDDIT_OR_USERNAME;

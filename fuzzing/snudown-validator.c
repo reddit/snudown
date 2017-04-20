@@ -1,7 +1,7 @@
 #include "markdown.h"
 #include "html.h"
 #include "buffer.h"
-#include "../snudown.h"
+#include "../src/renderers.h"
 
 #include <ctype.h>
 #include <errno.h>

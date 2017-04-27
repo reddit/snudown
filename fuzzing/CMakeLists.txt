@@ -8,7 +8,8 @@ set(HEADERS
   ../src/html_blocks.h
   ../src/html_entities.h
   ../src/markdown.h
-  ../src/stack.h
+  ../src/stack.h  
+  ../src/renderers.h
   )
 set(LIBRARY_SOURCES
   ../html/houdini_href_e.c
@@ -18,7 +19,8 @@ set(LIBRARY_SOURCES
   ../src/autolink.c
   ../src/buffer.c
   ../src/markdown.c
-  ../src/stack.c
+  ../src/stack.c  
+  ../src/renderers.c
   ${HEADERS}
   )
 

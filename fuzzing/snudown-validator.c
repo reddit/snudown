@@ -20,6 +20,23 @@
 
 #define SNUDOWN_VERSION "1.3.2"
 
+static struct snudown_renderer sundown[RENDERER_COUNT];
+
+void init_default_renderer() {
+	struct snudown_renderer *renderer = get_default_renderer();
+	sundown[RENDERER_USERTEXT] = *renderer;
+}
+
+void init_wiki_renderer() {
+	struct snudown_renderer *renderer = get_wiki_renderer();
+	sundown[RENDERER_WIKI] = *renderer;
+}
+
+void init_default_renderer_without_links() {
+	struct snudown_renderer *renderer = get_default_renderer_without_links();
+	sundown[RENDERER_USERTEXT_WITHOUTLINKS] = *renderer;
+}
+
 void
 snudown_md(struct buf *ob, const uint8_t *document, size_t doc_size, int wiki_mode)
 {

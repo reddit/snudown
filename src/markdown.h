@@ -82,6 +82,7 @@ struct sd_callbacks {
 	/* span level callbacks - NULL or return 0 prints the span verbatim */
 	int (*autolink)(struct buf *ob, const struct buf *link, enum mkd_autolink type, void *opaque);
 	int (*codespan)(struct buf *ob, const struct buf *text, void *opaque);
+	int (*spoilerspan)(struct buf *ob, const struct buf *text, void *opaque);
 	int (*double_emphasis)(struct buf *ob, const struct buf *text, void *opaque);
 	int (*emphasis)(struct buf *ob, const struct buf *text, void *opaque);
 	int (*image)(struct buf *ob, const struct buf *link, const struct buf *title, const struct buf *alt, void *opaque);

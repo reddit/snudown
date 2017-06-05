@@ -398,6 +398,16 @@ cases = {
         '<blockquote>\n</blockquote>\n',
     '> some quote goes here\n>':
         '<blockquote>\n<p>some quote goes here</p>\n</blockquote>\n',
+    'This is an >!inline spoiler!< sentence.':
+        '<p>This is an <span class="md-spoiler-text">inline spoiler</span> sentence.</p>\n',
+    '>!Inline spoiler!< starting the sentence':
+        '<p><span class="md-spoiler-text">Inline spoiler</span> starting the sentence</p>\n',
+    'Inline >!spoiler with *emphasis*!< test':
+        '<p>Inline <span class="md-spoiler-text">spoiler with <em>emphasis</em></span> test</p>\n',
+    '>! This is an illegal blockspoiler >!with an inline spoiler!<':
+        '<p>&gt;! This is an illegal blockspoiler <span class="md-spoiler-text">with an inline spoiler</span></p>\n',
+    'This is an >!inline spoiler with some >!additional!< text!<':
+        '<p>This is an <span class="md-spoiler-text">inline spoiler with some &gt;!additional</span> text!&lt;</p>\n'
 }
 
 

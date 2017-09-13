@@ -184,6 +184,16 @@ rndr_strikethrough(struct buf *ob, const struct buf *text, void *opaque)
 }
 
 static int
+rndr_underline(struct buf *ob, const struct buf *text, void *opaque)
+{
+	if (!text || !text->size)
+		return 0;
+
+	bufput(ob, text->data, text->size);
+	return 1;
+}
+
+static int
 rndr_double_emphasis(struct buf *ob, const struct buf *text, void *opaque)
 {
 	if (!text || !text->size)
@@ -728,6 +738,7 @@ sdhtml_toc_renderer(struct sd_callbacks *callbacks, struct html_renderopt *optio
 		NULL,
 		rndr_triple_emphasis,
 		rndr_strikethrough,
+		rndr_underline,
 		rndr_superscript,
 		rndr_subscript,
 
@@ -770,6 +781,7 @@ sdhtml_renderer(struct sd_callbacks *callbacks, struct html_renderopt *options, 
 		rndr_raw_html,
 		rndr_triple_emphasis,
 		rndr_strikethrough,
+		rndr_underline,
 		rndr_superscript,
 		rndr_subscript,
 

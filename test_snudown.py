@@ -84,6 +84,12 @@ cases = {
     r'\~~escaped strikethrough~~':
         '<p>~~escaped strikethrough~~</p>\n',
 
+    r'~normal underline~':
+        '<p>normal underline</p>\n',
+
+    r'\~escaped underline~':
+        '<p>~escaped underline~</p>\n',
+
     'anywhere\x03, you':
         '<p>anywhere, you</p>\n',
 

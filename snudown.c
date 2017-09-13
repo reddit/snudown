@@ -48,6 +48,7 @@ PyDoc_STRVAR(snudown_md__doc__, "Render a Markdown document");
 static const unsigned int snudown_default_md_flags =
 	MKDEXT_NO_INTRA_EMPHASIS |
 	MKDEXT_SUPERSCRIPT |
+	MKDEXT_SUBSCRIPT |
 	MKDEXT_AUTOLINK |
 	MKDEXT_STRIKETHROUGH |
 	MKDEXT_TABLES;

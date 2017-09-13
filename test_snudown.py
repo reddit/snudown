@@ -69,11 +69,26 @@ cases = {
     r'Escape\^superscript':
         '<p>Escape^superscript</p>\n',
 
+    r'No%subscript':
+        '<p>Nosubscript</p>\n',
+
+    r'No%(subscript)':
+        '<p>Nosubscript</p>\n',
+
+    r'Escape\%subscript':
+        '<p>Escape%subscript</p>\n',
+
     r'~~normal strikethrough~~':
         '<p><del>normal strikethrough</del></p>\n',
 
     r'\~~escaped strikethrough~~':
         '<p>~~escaped strikethrough~~</p>\n',
+
+    r'~normal underline~':
+        '<p>normal underline</p>\n',
+
+    r'\~escaped underline~':
+        '<p>~escaped underline~</p>\n',
 
     'anywhere\x03, you':
         '<p>anywhere, you</p>\n',

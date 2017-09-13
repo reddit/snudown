@@ -76,6 +76,7 @@ static size_t char_autolink_www(struct buf *ob, struct sd_markdown *rndr, uint8_
 static size_t char_autolink_subreddit_or_username(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t max_lookbehind, size_t size);
 static size_t char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t max_lookbehind, size_t size);
 static size_t char_superscript(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t max_lookbehind, size_t size);
+static size_t char_subscript(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t max_lookbehind, size_t size);
 
 enum markdown_char_t {
 	MD_CHAR_NONE = 0,
@@ -91,6 +92,7 @@ enum markdown_char_t {
 	MD_CHAR_AUTOLINK_WWW,
 	MD_CHAR_AUTOLINK_SUBREDDIT_OR_USERNAME,
 	MD_CHAR_SUPERSCRIPT,
+	MD_CHAR_SUBSCRIPT,
 };
 
 static char_trigger markdown_char_ptrs[] = {
@@ -107,6 +109,7 @@ static char_trigger markdown_char_ptrs[] = {
 	&char_autolink_www,
 	&char_autolink_subreddit_or_username,
 	&char_superscript,
+	&char_subscript,
 };
 
 /* render • structure containing one particular render */
@@ -689,7 +692,7 @@ char_codespan(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t ma
 static size_t
 char_escape(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t max_lookbehind, size_t size)
 {
-	static const char *escape_chars = "\\`*_{}[]()#+-.!:|&<>/^~";
+	static const char *escape_chars = "\\`*_{}[]()#+-.!:|&<>/^~%";
 	struct buf work = { 0, 0, 0, 0 };
 
 	if (size > 1) {
@@ -1198,6 +1201,44 @@ char_superscript(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t
 	sup = rndr_newbuf(rndr, BUFFER_SPAN);
 	parse_inline(sup, rndr, data + sup_start, sup_len - sup_start);
 	rndr->cb.superscript(ob, sup, rndr->opaque);
+	rndr_popbuf(rndr, BUFFER_SPAN);
+
+	return (sup_start == 2) ? sup_len + 1 : sup_len;
+}
+
+static size_t
+char_subscript(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t max_lookbehind, size_t size)
+{
+	size_t sup_start, sup_len;
+	struct buf *sup;
+
+	if (!rndr->cb.subscript)
+		return 0;
+
+	if (size < 2)
+		return 0;
+
+	if (data[1] == '(') {
+		sup_start = sup_len = 2;
+
+		while (sup_len < size && data[sup_len] != ')' && data[sup_len - 1] != '\\')
+			sup_len++;
+
+		if (sup_len == size)
+			return 0;
+	} else {
+		sup_start = sup_len = 1;
+
+		while (sup_len < size && !_isspace(data[sup_len]))
+			sup_len++;
+	}
+
+	if (sup_len - sup_start == 0)
+		return (sup_start == 2) ? 3 : 0;
+
+	sup = rndr_newbuf(rndr, BUFFER_SPAN);
+	parse_inline(sup, rndr, data + sup_start, sup_len - sup_start);
+	rndr->cb.subscript(ob, sup, rndr->opaque);
 	rndr_popbuf(rndr, BUFFER_SPAN);
 
 	return (sup_start == 2) ? sup_len + 1 : sup_len;
@@ -2547,6 +2588,9 @@ sd_markdown_new(
 
 	if (extensions & MKDEXT_SUPERSCRIPT)
 		md->active_char['^'] = MD_CHAR_SUPERSCRIPT;
+
+	if (extensions & MKDEXT_SUPERSCRIPT)
+		md->active_char['%'] = MD_CHAR_SUBSCRIPT;
 
 	/* Extension data */
 	md->ext_flags = extensions;

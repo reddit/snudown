@@ -614,6 +614,14 @@ rndr_superscript(struct buf *ob, const struct buf *text, void *opaque)
 	return 1;
 }
 
+static int
+rndr_subscript(struct buf *ob, const struct buf *text, void *opaque)
+{
+	if (!text || !text->size) return 0;
+	bufput(ob, text->data, text->size);
+	return 1;
+}
+
 static void
 rndr_normal_text(struct buf *ob, const struct buf *text, void *opaque)
 {
@@ -721,6 +729,7 @@ sdhtml_toc_renderer(struct sd_callbacks *callbacks, struct html_renderopt *optio
 		rndr_triple_emphasis,
 		rndr_strikethrough,
 		rndr_superscript,
+		rndr_subscript,
 
 		NULL,
 		NULL,
@@ -762,6 +771,7 @@ sdhtml_renderer(struct sd_callbacks *callbacks, struct html_renderopt *options, 
 		rndr_triple_emphasis,
 		rndr_strikethrough,
 		rndr_superscript,
+		rndr_subscript,
 
 		NULL,
 		rndr_normal_text,

@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 struct html_renderopt {
-	struct {
+	struct toc_data {
 		int header_count;
 		int current_level;
 		int level_offset;

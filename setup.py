@@ -116,7 +116,8 @@ class BuildSnudown(distutils.command.build.build):
 
 class GPerfingBuildExt(build_ext):
     def run(self):
-        process_gperf_file("src/html_entities.gperf", "src/html_entities.h")
+        #translate.py builds this manually
+        #process_gperf_file("src/html_entities.gperf", "src/html_entities.h")
         build_ext.run(self)
 
 setup(

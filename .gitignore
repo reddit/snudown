@@ -8,3 +8,7 @@ src/html_entities.h
 *.o
 /fuzzing/bin
 /fuzzing/testing
+
+compile_commands.json
+*.c.cbor
+translator-build/

@@ -57,10 +57,31 @@ extensions = [
         name='snudown',
         sources=['snudown.c', 'src/bufprintf.c'] + c_files_in('html/'),
         include_dirs=['src', 'html'],
-        libraries=['snudownrustxcheck', 'fakechecks'],
-        #libraries=['snudownrustxcheck', 'clevrbuf'],
+        #libraries=['snudownrustxcheck', 'fakechecks'],
+        libraries=['snudownrustxcheck', 'clevrbuf'],
         library_dirs=['translator-build', fakechecks_path, clevrbuf_path],
         extra_link_args=['-Wl,-rpath,{},-rpath,{}'.format(fakechecks_path, clevrbuf_path)],
+    ),
+    Extension(
+        name='snudown',
+        sources=['snudown.c', 'src/bufprintf.c'] + c_files_in('html/'),
+        include_dirs=['src', 'html'],
+        #libraries=['snudownrustxcheck', 'fakechecks'],
+        libraries=['snudownrustxcheck', 'clevrbuf'],
+        library_dirs=['translator-build', fakechecks_path, clevrbuf_path],
+        extra_link_args=['-Wl,-rpath,{},-rpath,{}'.format(fakechecks_path, clevrbuf_path)],
+    ),
+    Extension(
+        name='snudown',
+        sources=['snudown.c', '../xchecks.c'] + c_files_in('src/') + c_files_in('html/'),
+        include_dirs=['src', 'html'],
+        library_dirs=[fakechecks_path, clevrbuf_path],
+        #libraries=["fakechecks"],
+        libraries=["clevrbuf"],
+        extra_compile_args=plugin_args,
+        extra_link_args=['-fuse-ld=gold', '-Wl,--gc-sections,--icf=safe',
+                            '-Wl,-rpath,{},-rpath,{}'.format(fakechecks_path, clevrbuf_path)],
+        extra_objects=[runtime_path],
     ),
     Extension(
         name='snudown',
@@ -91,12 +112,17 @@ class BuildSnudown(distutils.command.build.build):
     'translate from c to rust'),
     ('rust-crosschecks', None,
     'translate then run rust crosschecks'),
+    ('rust-fake-crosschecks', None,
+    'translate then run fake rust crosschecks'),
     ('clang-crosschecks', None,
-    'translate then run rust crosschecks'),
+    'translate then run clang crosschecks'),
+    ('clang-fake-crosschecks', None,
+    'translate then run fake clang crosschecks'),
     ]
 
     def initialize_options(self, *args, **kwargs):
         self.translate = self.rust_crosschecks = self.clang_crosschecks = None
+        self.rust_fake_crosschecks = self.clang_fake_crosschecks = None
         distutils.command.build.build.initialize_options(self, *args, **kwargs)
 
     def run(self, *args, **kwargs):
@@ -104,12 +130,30 @@ class BuildSnudown(distutils.command.build.build):
             subprocess.check_call(["../translate.sh", "translate"])
             del extensions[1]
             del extensions[1]
+            del extensions[1]
+            del extensions[1]
         if self.rust_crosschecks is not None:
             subprocess.check_call(["../translate.sh", "rustcheck"])
             del extensions[0]
             del extensions[1]
+            del extensions[1]
+            del extensions[1]
+        if self.rust_fake_crosschecks is not None:
+            subprocess.check_call(["../translate.sh", "rustcheck"])
+            del extensions[0]
+            del extensions[0]
+            del extensions[1]
+            del extensions[1]
         if self.clang_crosschecks is not None:
             subprocess.check_call(["../translate.sh"])
+            del extensions[0]
+            del extensions[0]
+            del extensions[0]
+            del extensions[1]
+        if self.clang_fake_crosschecks is not None:
+            subprocess.check_call(["../translate.sh"])
+            del extensions[0]
+            del extensions[0]
             del extensions[0]
             del extensions[0]
         distutils.command.build.build.run(self, *args, **kwargs)

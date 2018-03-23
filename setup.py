@@ -43,7 +43,9 @@ def process_gperf_file(gperf_file, output_file):
 '''
 extensions[0] -> extension for translating to rust
 extensions[1] -> extension for translating and running rust xcheck
-extensions[2] -> extension for running clang xcheck
+extensions[2] -> extension for translating and running rust fake xcheck
+extensions[3] -> extension for running clang xcheck
+extensions[4] -> extension for running clang fake xcheck
 '''
 extensions = [
     Extension(

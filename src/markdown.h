@@ -100,6 +100,14 @@ struct sd_callbacks {
 	/* header and footer */
 	void (*doc_header)(struct buf *ob, void *opaque);
 	void (*doc_footer)(struct buf *ob, void *opaque);
+
+	/* enter_X callbacks for use in widget toolkits */
+	void (*enter_blockquote)(struct buf *ob, void *opaque);
+	void (*enter_list)(struct buf *ob, void *opaque);
+	void (*enter_listitem)(struct buf *ob, void *opaque);
+	void (*enter_table)(struct buf *ob, void *opaque);
+	void (*enter_table_row)(struct buf *ob, int header_flags, void *opaque);
+	void (*enter_table_cell)(struct buf *ob, int header_flags, void *opaque);
 };
 
 struct sd_markdown;

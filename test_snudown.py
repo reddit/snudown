@@ -1,11 +1,39 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
+import sys
 import snudown
 import unittest
 import itertools
-import cStringIO as StringIO
+try:
+    from StringIO import StringIO  # For Python 2
+except ImportError:
+    from io import StringIO  # For Python 3
 
+
+if sys.version_info.major == 2:  # For Python 2
+    test_range = xrange
+
+    unicode_cases = {
+        # Don't treat unicode punctuation as a word boundary for now
+        u'a。u/reddit'.encode('utf8'):
+            u'<p>a。u/reddit</p>\n'.encode('utf8'),
+        u'a。r/reddit.com'.encode('utf8'):
+            u'<p>a。r/reddit.com</p>\n'.encode('utf8'),
+    }
+elif sys.version_info.major == 3:  # For Python 3
+    test_range = range
+
+    # In Python 3, snudown.markdown returns unicode instead of a bytestring
+    unicode_cases = {
+        # Don't treat unicode punctuation as a word boundary for now
+        u'a。u/reddit'.encode('utf8'):
+            u'<p>a。u/reddit</p>\n',
+        u'a。r/reddit.com'.encode('utf8'):
+            u'<p>a。r/reddit.com</p>\n',
+    }
 
 cases = {
     '': '',
@@ -153,10 +181,6 @@ cases = {
     'fuu/reddit':
         '<p>fuu/reddit</p>\n',
 
-    # Don't treat unicode punctuation as a word boundary for now
-    u'a。u/reddit'.encode('utf8'):
-        u'<p>a。u/reddit</p>\n'.encode('utf8'),
-
     '\\/u/me':
         '<p>/u/me</p>\n',
 
@@ -240,9 +264,6 @@ cases = {
 
     'foobar/reddit.com':
         '<p>foobar/reddit.com</p>\n',
-
-    u'a。r/reddit.com'.encode('utf8'):
-        u'<p>a。r/reddit.com</p>\n'.encode('utf8'),
 
     '/R/reddit.com':
         '<p>/R/reddit.com</p>\n',
@@ -328,9 +349,6 @@ cases = {
     '&#;':
         '<p>&amp;#;</p>\n',
 
-    '&#;':
-        '<p>&amp;#;</p>\n',
-
     '&#x;':
         '<p>&amp;#x;</p>\n',
     '> quotey mcquoteface':
@@ -410,20 +428,22 @@ cases = {
         '<p>This is an <span class="md-spoiler-text">inline spoiler with some &gt;!additional</span> text!&lt;</p>\n'
 }
 
+cases.update(unicode_cases)
+
 
 # Test that every numeric entity is encoded as
 # it should be.
 ILLEGAL_NUMERIC_ENTS = frozenset(itertools.chain(
-    xrange(0, 9),
-    xrange(11, 13),
-    xrange(14, 32),
-    xrange(55296, 57344),
-    xrange(65534, 65536),
+    test_range(0, 9),
+    test_range(11, 13),
+    test_range(14, 32),
+    test_range(55296, 57344),
+    test_range(65534, 65536),
 ))
 
 ent_test_key = ''
 ent_test_val = ''
-for i in xrange(65550):
+for i in test_range(65550):
     ent_testcase = '&#%d;&#x%x;' % (i, i)
     ent_test_key += ent_testcase
     if i in ILLEGAL_NUMERIC_ENTS:
@@ -505,30 +525,29 @@ class SnudownTestCase(unittest.TestCase):
 
     def runTest(self):
         output = snudown.markdown(self.input, renderer=self.renderer)
-
         for i, (a, b) in enumerate(zip(repr(self.expected_output),
                                        repr(output))):
             if a != b:
-                io = StringIO.StringIO()
-                print >> io, "TEST FAILED:"
-                print >> io, "       input: %s" % repr(self.input)
-                print >> io, "    expected: %s" % repr(self.expected_output)
-                print >> io, "      actual: %s" % repr(output)
-                print >> io, "              %s" % (' ' * i + '^')
-                self.fail(io.getvalue())
+                test_io = StringIO()
+                print("TEST FAILED:", file=test_io)
+                print("       input: %r" % self.input, file=test_io)
+                print("    expected: %r" % self.expected_output, file=test_io)
+                print("      actual: %r" % output, file=test_io)
+                print("              %s" % (' ' * i + '^'), file=test_io)
 
+                self.fail(test_io.getvalue())
 
 
 def test_snudown():
     suite = unittest.TestSuite()
 
-    for input, expected_output in wiki_cases.iteritems():
+    for input, expected_output in wiki_cases.items():
         case = SnudownTestCase(renderer=snudown.RENDERER_WIKI)
         case.input = input
         case.expected_output = expected_output
         suite.addTest(case)
 
-    for input, expected_output in cases.iteritems():
+    for input, expected_output in cases.items():
         case = SnudownTestCase()
         case.input = input
         case.expected_output = expected_output

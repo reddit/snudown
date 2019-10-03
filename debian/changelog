@@ -1,3 +1,8 @@
+snudown (1.6.0) unstable; urgency=medium
+  * add support for Python 3
+
+ -- Monica Burgos <monica.burgos@reddit.com> Thurs, 03 Oct 2019 13:42:45 -0800
+
 snudown (1.5.0) unstable; urgency=medium
   * add blockspoiler support
   * add inline spoiler support

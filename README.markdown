@@ -1,4 +1,4 @@
-﻿Snudown
+Snudown
 =======
 
 `Snudown` is a reddit-specific fork of the [Sundown](http://github.com/vmg/sundown)
@@ -8,7 +8,7 @@ Markdown parser used by GitHub, with Python integration added.
 Setup for development on Mac OS X
 --------------------------------
 1. From `~/src/snudown` run `$ python setup.py build`
-2. If this is successful, there will now be a `snudown.so` file in the `/snudwon/build/lib.< os info >-< python version number>` directory
+2. If this is successful, there will now be a `snudown.so` file in the `/snudown/build/lib.< os info >-< python version number>` directory
 3. From within the `/lib.< os info >-< python version number>` directory, start a python interpreter
     <!-- Make sure you can import snudown -->
     >>> import snudown
@@ -32,8 +32,8 @@ Run `setup.py install` to install the module.
 
 For Mac OS X:
 1. Install `afl-fuzz` via homebrew: `brew install afl-fuzz`
-3. You can now install the module via `python setup.py install`
-4. You may also compile snudown using the Makefile directly if you so wish
+2. You can now install the module via `python setup.py install`
+3. You may also compile snudown using the Makefile directly if you so wish
 
 
 Thanks

@@ -603,6 +603,39 @@ parse_spoilerspan(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 	size_t len;
 	size_t i = 0;
 	struct buf *work = 0;
+	int r;
+
+	render_method = rndr->cb.spoilerspan;
+
+	if (!render_method) return 0;
+
+	while (i < size) {
+		len = find_emph_char(data + i, size - i, '<');
+		if (!len) return 0;
+		i += len;
+
+		if (i < size && data[i] == '<' && data[i - 1] == '!') {
+			work = rndr_newbuf(rndr, BUFFER_SPAN);
+			parse_inline(work, rndr, data, i - 1);
+			r = render_method(ob, work, rndr->opaque);
+			rndr_popbuf(rndr, BUFFER_SPAN);
+
+			if (!r) return 0;
+
+			return i + 1;
+		}
+		i++;
+	}
+	return 0;
+}
+
+static size_t
+parse_coloredtext(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size)
+{
+	int (*render_method)(struct buf *ob, const struct buf *text, const struct buf *color, void *opaque);
+	size_t len;
+	size_t i = 0;
+	struct buf *work = 0;
 	struct buf *color = 0;
 	int r;
 
@@ -627,39 +660,6 @@ parse_spoilerspan(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 			work = rndr_newbuf(rndr, BUFFER_SPAN);
 			parse_inline(work, rndr, data, i - 1);
 			r = render_method(ob, work, color, rndr->opaque);
-			rndr_popbuf(rndr, BUFFER_SPAN);
-
-			if (!r) return 0;
-
-			return i + 1;
-		}
-		i++;
-	}
-	return 0;
-}
-
-static size_t
-parse_coloredtext(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size)
-{
-	int (*render_method)(struct buf *ob, const struct buf *text, const struct buf *color, void *opaque);
-	size_t len;
-	size_t i = 0;
-	struct buf *work = 0;
-	int r;
-
-	render_method = rndr->cb.spoilerspan;
-
-	if (!render_method) return 0;
-
-	while (i < size) {
-		len = find_emph_char(data + i, size - i, '<');
-		if (!len) return 0;
-		i += len;
-
-		if (i < size && data[i] == '<' && data[i - 1] == '!') {
-			work = rndr_newbuf(rndr, BUFFER_SPAN);
-			parse_inline(work, rndr, data, i - 1);
-			r = render_method(ob, work, rndr->opaque);
 			rndr_popbuf(rndr, BUFFER_SPAN);
 
 			if (!r) return 0;

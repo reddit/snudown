@@ -206,6 +206,21 @@ rndr_strikethrough(struct buf *ob, const struct buf *text, void *opaque)
 }
 
 static int
+rndr_colored(struct buf *ob, const struct buf *text, const struct buf *color, void *opaque)
+{
+	if (!text || !text->size || !color || !color->size)
+		return 0;
+
+	BUFPUTSL(ob, "<span style=\"color:");
+	bufput(ob, color->data, color->size);
+	BUFPUTSL(ob, "\">");
+	bufput(ob, text->data, text->size);
+	BUFPUTSL(ob, "</span>");
+
+	return 1;
+}
+
+static int
 rndr_double_emphasis(struct buf *ob, const struct buf *text, void *opaque)
 {
 	if (!text || !text->size)

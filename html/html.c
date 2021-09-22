@@ -208,7 +208,7 @@ rndr_strikethrough(struct buf *ob, const struct buf *text, void *opaque)
 static int
 rndr_coloredtext(struct buf *ob, const struct buf *text, const struct buf *color, void *opaque)
 {
-	if (!text || !text->size || !color || !color->size)
+	if (!text || !text->size || !color || !color->size || !color+text->size)
 		return 0;
 
 	BUFPUTSL(ob, "<span style=\"color:");

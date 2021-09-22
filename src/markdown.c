@@ -603,6 +603,48 @@ parse_spoilerspan(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_
 	size_t len;
 	size_t i = 0;
 	struct buf *work = 0;
+	struct buf *color = 0;
+	int r;
+
+	render_method = rndr->cb.coloredtext;
+
+	if (!render_method) return 0;
+
+	while (i < size) {
+		colorlen = find_emph_char(data + i, size - i, ':');
+		if (!colorlen) return 0;
+		i += colorlen
+		if (i < size && data[i] == ':' && data[i - 1] == ':') {
+			color = rndr_newbuf(rndr, BUFFER_SPAN);
+			parse_inline(color, rndr, data, i - 1);
+		}
+		
+		len = find_emph_char(data + i, size - i, '<');
+		if (!len) return 0;
+		i += len;
+
+		if (i < size && data[i] == '<' && data[i - 1] == ':') {
+			work = rndr_newbuf(rndr, BUFFER_SPAN);
+			parse_inline(work, rndr, data, i - 1);
+			r = render_method(ob, work, color, rndr->opaque);
+			rndr_popbuf(rndr, BUFFER_SPAN);
+
+			if (!r) return 0;
+
+			return i + 1;
+		}
+		i++;
+	}
+	return 0;
+}
+
+static size_t
+parse_coloredtext(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size)
+{
+	int (*render_method)(struct buf *ob, const struct buf *text, const struct buf *color, void *opaque);
+	size_t len;
+	size_t i = 0;
+	struct buf *work = 0;
 	int r;
 
 	render_method = rndr->cb.spoilerspan;
@@ -641,6 +683,13 @@ char_emphasis(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t ma
 			return 0;
 
 		return ret + 2;
+	}
+
+	if (size > 4 && c == '>' && data[1] == 'c' && data[2] == ':') {
+		if(_isspace(data[2]) || (ret = parse_coloredtext(ob, rndr, data + 2, size - 2)) == 0)
+			return 0;
+
+		return ret + 3;
 	}
 
 
@@ -1475,6 +1524,25 @@ prefix_blockspoiler(uint8_t *data, size_t size)
 			return i + 3;
 
 		return i + 2;
+    }
+
+    return 0;
+}
+
+static size_t
+prefix_coloredtext(uint8_t *data, size_t size)
+{
+    size_t i = 0;
+    if (i < size && data[i] == ' ') i++;
+    if (i < size && data[i] == ' ') i++;
+    if (i < size && data[i] == ' ') i++;
+
+    if (i + 2 < size && data[i] == '>' && data[i + 1] == 'c' && data[i + 2] == ':') {
+		size_t coloredspan = find_emph_char(data + i + 2, size - i - 1, '<');
+		if (i + coloredspan < size && coloredspan > 0 && data[i + coloredspan] == ':')
+			return 0;
+
+		return i + 3;
     }
 
     return 0;

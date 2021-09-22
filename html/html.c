@@ -792,6 +792,7 @@ sdhtml_renderer(struct sd_callbacks *callbacks, struct html_renderopt *options, 
 
 		rndr_autolink,
 		rndr_codespan,
+		rndr_colored,
 		rndr_spoilerspan,
 		rndr_double_emphasis,
 		rndr_emphasis,

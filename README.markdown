@@ -10,18 +10,22 @@ Setup for development on Mac OS X
 1. From `~/src/snudown` run `$ python setup.py build`
 2. If this is successful, there will now be a `snudown.so` file in the `/snudown/build/lib.< os info >-< python version number>` directory
 3. From within the `/lib.< os info >-< python version number>` directory, start a python interpreter
-    <!-- Make sure you can import snudown -->
-    >>> import snudown
-    <!-- verify that the build you just made is being used -->
-    >>> print(snudown.__file__)
-    snudown.so
-    <!-- Test the functionality of the build -->
-    >>> snudown.markdown('[hi](http://www.reddit.com)')
-    '<p><a href="http://www.reddit.com">hi</a></p>\n'
-    <!-- Great! You can exit now. -->
-    >>> quit()
+```
+<!-- Make sure you can import snudown -->
+>>> import snudown
+<!-- verify that the build you just made is being used -->
+>>> print(snudown.__file__)
+snudown.so
+<!-- Test the functionality of the build -->
+>>> snudown.markdown('[hi](http://www.reddit.com)')
+'<p><a href="http://www.reddit.com">hi</a></p>\n'
+<!-- Great! You can exit now. -->
+>>> quit()
+```
 4. Verify that the tests pass
-     $ PYTHONPATH="$(pwd)" python ../../test_snudown.py
+```
+$ PYTHONPATH="$(pwd)" python ../../test_snudown.py
+```
 5. Verify that all the previous steps work for both Python 2 AND Python 3
 
 

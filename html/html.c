@@ -163,6 +163,15 @@ rndr_blockquote(struct buf *ob, const struct buf *text, void *opaque)
 }
 
 static void
+rndr_markedtext(struct buf *ob, const struct buf *text, void *opaque)
+{
+	BUFPUTSL(ob, "<mark>");
+	if (text) escape_html(ob, text->data, text->size);
+	BUFPUTSL(ob, "</mark>");
+	return 1;
+}
+
+static void
 rndr_blockspoiler(struct buf *ob, const struct buf *text, void *opaque)
 {
 	if (ob->size) bufputc(ob, '\n');
@@ -734,6 +743,7 @@ sdhtml_toc_renderer(struct sd_callbacks *callbacks, struct html_renderopt *optio
 
 		NULL,
 		rndr_codespan,
+		rndr_markedtext,
 		rndr_spoilerspan,
 		rndr_double_emphasis,
 		rndr_emphasis,
@@ -777,6 +787,7 @@ sdhtml_renderer(struct sd_callbacks *callbacks, struct html_renderopt *options, 
 
 		rndr_autolink,
 		rndr_codespan,
+		rndr_markedtext,
 		rndr_spoilerspan,
 		rndr_double_emphasis,
 		rndr_emphasis,

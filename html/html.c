@@ -206,6 +206,21 @@ rndr_strikethrough(struct buf *ob, const struct buf *text, void *opaque)
 }
 
 static int
+rndr_coloredtext(struct buf *ob, const struct buf *text, const struct buf *color, void *opaque)
+{
+	if (!text || !text->size || !color || !color->size || !color+text->size)
+		return 0;
+
+	BUFPUTSL(ob, "<span style=\"color:");
+	bufput(ob, color->data, color->size);
+	BUFPUTSL(ob, "\">");
+	bufput(ob, text->data, text->size);
+	BUFPUTSL(ob, "</span>");
+
+	return 1;
+}
+
+static int
 rndr_double_emphasis(struct buf *ob, const struct buf *text, void *opaque)
 {
 	if (!text || !text->size)
@@ -734,6 +749,7 @@ sdhtml_toc_renderer(struct sd_callbacks *callbacks, struct html_renderopt *optio
 
 		NULL,
 		rndr_codespan,
+		rndr_coloredtext,
 		rndr_spoilerspan,
 		rndr_double_emphasis,
 		rndr_emphasis,
@@ -777,6 +793,7 @@ sdhtml_renderer(struct sd_callbacks *callbacks, struct html_renderopt *options, 
 
 		rndr_autolink,
 		rndr_codespan,
+		rndr_coloredtext,
 		rndr_spoilerspan,
 		rndr_double_emphasis,
 		rndr_emphasis,

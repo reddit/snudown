@@ -1,6 +1,7 @@
 build/
 dist/
 snudown.egg-info/
+src/html_entities.gperf.generated
 src/html_entities.h
 *.pyc
 *.so

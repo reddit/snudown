@@ -796,6 +796,7 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_
 	int hex = 0;
 	int entity_base;
 	uint32_t entity_val;
+	const struct html_entity *named_entity = NULL;
 
 	if (end < size && data[end] == '#') {
 		numeric = 1;
@@ -844,7 +845,9 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_
 		if (!is_valid_numeric_entity(entity_val))
 			return 0;
 	} else {
-		if (!is_allowed_named_entity((const char *)data, end))
+		/* Lookup the entity in the named entity table. */
+		named_entity = resolve_named_entity((const char *)data, end);
+		if (!named_entity)
 			return 0;
 	}
 
@@ -852,6 +855,17 @@ char_entity(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_
 		work.data = data;
 		work.size = end;
 		rndr->cb.entity(ob, &work, rndr->opaque);
+	} else if (named_entity && named_entity->output_numeric) {
+		/* Output the named entity as numeric entities. */
+		int i;
+		assert(named_entity->output_numeric <= MAX_ENTITY_CODEPOINTS);
+		for (i = 0; i < named_entity->output_numeric; i++) {
+			/* Verify the codepoint is a valid entity. */
+			entity_val = named_entity->codepoints[i];
+			assert(is_valid_numeric_entity(entity_val));
+			/* Render codepoint to an entity. */
+			bufprintf(ob, "&#x%X;", entity_val);
+		}
 	} else {
 		/* Necessary so we can normalize `&#X3E;` to `&#x3E;` */
 		bufputc(ob, '&');

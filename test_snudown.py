@@ -340,6 +340,24 @@ cases = {
     'aaa&frac12;aaa':
         '<p>aaa&frac12;aaa</p>\n',
 
+    '&checkmark;':
+        '<p>&#x2713;</p>\n',
+
+    '&acE;':
+        '<p>&#x223E;&#x333;</p>\n',
+
+    'aaa&vsupne;aaa':
+        '<p>aaa&#x228B;&#xFE00;aaa</p>\n',
+
+    '`&vsupne;`':
+        '<p><code>&amp;vsupne;</code></p>\n',
+
+    '*&cups;*':
+        '<p><em>&#x222A;&#xFE00;</em></p>\n',
+
+    '&amp;':
+        '<p>&amp;</p>\n',
+
     '&':
         '<p>&amp;</p>\n',
 

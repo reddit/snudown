@@ -1255,7 +1255,7 @@ char_superscript(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t
 	if (data[1] == '(') {
 		sup_start = sup_len = 2;
 
-		while (sup_len < size && data[sup_len] != ')' && data[sup_len - 1] != '\\')
+		while (sup_len < size && !(data[sup_len] == ')' && data[sup_len - 1] != '\\'))
 			sup_len++;
 
 		if (sup_len == size)

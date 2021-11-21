@@ -100,6 +100,9 @@ cases = {
     r'~~normal strikethrough~~':
         '<p><del>normal strikethrough</del></p>\n',
 
+    '^((\^Grouped superscript\))':
+        '<p><sup>(^Grouped superscript)</sup></p>\n',
+
     r'\~~escaped strikethrough~~':
         '<p>~~escaped strikethrough~~</p>\n',
 

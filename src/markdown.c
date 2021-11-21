@@ -1607,6 +1607,8 @@ parse_blockquote(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t
 		beg = end;
 	}
 
+	if (rndr->cb.enter_blockquote)
+		rndr->cb.enter_blockquote(ob, rndr->opaque);
 	parse_block(out, rndr, work_data, work_size);
 	if (rndr->cb.blockquote)
 		rndr->cb.blockquote(ob, out, rndr->opaque);
@@ -1884,6 +1886,9 @@ parse_listitem(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t s
 	while (end < size && data[end - 1] != '\n')
 		end++;
 
+	if (rndr->cb.enter_listitem)
+		rndr->cb.enter_listitem(ob, rndr->opaque);
+
 	/* getting working buffers */
 	work = rndr_newbuf(rndr, BUFFER_SPAN);
 	inter = rndr_newbuf(rndr, BUFFER_SPAN);
@@ -2003,6 +2008,9 @@ parse_list(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t size,
 {
 	struct buf *work = 0;
 	size_t i = 0, j;
+
+	if (rndr->cb.enter_list)
+		rndr->cb.enter_list(ob, rndr->opaque);
 
 	work = rndr_newbuf(rndr, BUFFER_BLOCK);
 
@@ -2231,6 +2239,9 @@ parse_table_row(
 	if (!rndr->cb.table_cell || !rndr->cb.table_row)
 		return;
 
+        if (rndr->cb.enter_table_row)
+                rndr->cb.enter_table_row(ob, header_flag, rndr->opaque);
+
 	row_work = rndr_newbuf(rndr, BUFFER_SPAN);
 
 	if (i < size && data[i] == '|')
@@ -2239,6 +2250,9 @@ parse_table_row(
 	for (col = 0; col < columns && i < size; ++col) {
 		size_t cell_start, cell_end;
 		struct buf *cell_work;
+
+                if (rndr->cb.enter_table_cell)
+                        rndr->cb.enter_table_cell(ob, header_flag, rndr->opaque);
 
 		cell_work = rndr_newbuf(rndr, BUFFER_SPAN);
 
@@ -2264,6 +2278,8 @@ parse_table_row(
 
 	cols_left = columns - col;
 	if (cols_left > 0) {
+                if (rndr->cb.enter_table_cell)
+                        rndr->cb.enter_table_cell(ob, header_flag, rndr->opaque);
 		struct buf empty_cell = { 0, 0, 0, 0 };
 		rndr->cb.table_cell(row_work, &empty_cell, col_data[col] | header_flag, rndr->opaque, cols_left);
 	}
@@ -2354,6 +2370,9 @@ parse_table_header(
 	if (col < *columns)
 		return 0;
 
+        if (rndr->cb.enter_table)
+                rndr->cb.enter_table(ob, rndr->opaque);
+
 	parse_table_row(
 		ob, rndr, data,
 		header_end,
@@ -2385,7 +2404,6 @@ parse_table(
 
 	i = parse_table_header(header_work, rndr, data, size, &columns, &col_data);
 	if (i > 0) {
-
 		while (i < size) {
 			size_t row_start;
 			int pipes = 0;

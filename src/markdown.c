@@ -1243,7 +1243,7 @@ cleanup:
 static size_t
 char_superscript(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t max_rewind, size_t max_lookbehind, size_t size)
 {
-	size_t sup_start, sup_len;
+	size_t sup_start, sup_len, brk_offset, num_brks;
 	struct buf *sup;
 
 	if (!rndr->cb.superscript)
@@ -1252,14 +1252,32 @@ char_superscript(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t
 	if (size < 2)
 		return 0;
 
-	if (data[1] == '(') {
-		sup_start = sup_len = 2;
-
-		while (sup_len < size && data[sup_len] != ')' && data[sup_len - 1] != '\\')
+	// find a bracket after a string of carets
+	brk_offset = 0;
+	while (brk_offset < size && data[brk_offset] == '^')
+		brk_offset++;
+	
+	if (brk_offset < size && data[brk_offset] == '(') {
+		if (brk_offset == 1)
+			sup_start = sup_len = 2; // original behaviour
+		else
+			sup_start = sup_len = 1; // to parse additional carets later
+		
+		num_brks = 0; // enable wrapped brackets inside ^()
+		while (sup_len < size) {
+			if (num_brks == 0 && data[sup_len] == ')' && data[sup_len - 1] != '\\') break;
+			if (sup_len > brk_offset) {
+				if (num_brks > 0 && data[sup_len] == ')' && data[sup_len - 1] != '\\') num_brks--;
+				else if (data[sup_len] == '(' && data[sup_len - 1] != '\\') num_brks++;
+			}
 			sup_len++;
+		}
 
 		if (sup_len == size)
 			return 0;
+		
+		if (brk_offset > 1)
+			sup_len++; // to parse additional carets later
 	} else {
 		sup_start = sup_len = 1;
 

@@ -97,6 +97,18 @@ cases = {
     r'Escape\^superscript':
         '<p>Escape^superscript</p>\n',
 
+    r'^(Multiple words superscript)':
+        '<p><sup>Multiple words superscript</sup></p>\n',
+
+    r'^^^^(Multiple words superscript)':
+        '<p><sup><sup><sup><sup>Multiple words superscript</sup></sup></sup></sup></p>\n',
+
+    r'^^^^(Multiple words ^^(and even higher) superscript)':
+        '<p><sup><sup><sup><sup>Multiple words <sup><sup>and even higher</sup></sup> superscript</sup></sup></sup></sup></p>\n',
+
+    r'^^^^(Multiple words (without escaping brackets) superscript)':
+        '<p><sup><sup><sup><sup>Multiple words (without escaping brackets) superscript</sup></sup></sup></sup></p>\n',
+
     r'~~normal strikethrough~~':
         '<p><del>normal strikethrough</del></p>\n',
 

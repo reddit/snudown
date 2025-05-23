@@ -1,21 +1,70 @@
-FROM python:3.8-buster
-
+FROM python:2.7
 ENV DEBIAN_FRONTEND noninteractive
-
-RUN apt-get update && \
-    apt-get install -y \
-        python \
-        python-dev \
-        python-pip \
-        build-essential \
-        gperf \
-        software-properties-common
-
 ENV SRC_DIR /opt/snudown
 ENV WHEEL_OUTPUT_DIR /tmp/dist
-
 RUN mkdir -p $SRC_DIR $WHEEL_OUTPUT_DIR
 WORKDIR $SRC_DIR
-
+ADD scripts ./scripts
+RUN scripts/ci-setup.sh
 ADD . $SRC_DIR
-CMD pip3 wheel --wheel-dir=$WHEEL_OUTPUT_DIR . ; pip2 wheel --wheel-dir=$WHEEL_OUTPUT_DIR .
+ARG SNUDOWN_VERSION
+RUN python setup.py install
+RUN python test_snudown.py
+CMD python -m pip wheel --wheel-dir=$WHEEL_OUTPUT_DIR .
+
+
+FROM python:3.9
+ENV DEBIAN_FRONTEND noninteractive
+ENV SRC_DIR /opt/snudown
+ENV WHEEL_OUTPUT_DIR /tmp/dist
+RUN mkdir -p $SRC_DIR $WHEEL_OUTPUT_DIR
+WORKDIR $SRC_DIR
+ADD scripts ./scripts
+RUN scripts/ci-setup.sh
+ADD . $SRC_DIR
+ARG SNUDOWN_VERSION
+RUN python setup.py install
+RUN python test_snudown.py
+CMD python -m pip wheel --wheel-dir=$WHEEL_OUTPUT_DIR .
+
+FROM python:3.10
+ENV DEBIAN_FRONTEND noninteractive
+ENV SRC_DIR /opt/snudown
+ENV WHEEL_OUTPUT_DIR /tmp/dist
+RUN mkdir -p $SRC_DIR $WHEEL_OUTPUT_DIR
+WORKDIR $SRC_DIR
+ADD scripts ./scripts
+RUN scripts/ci-setup.sh
+ADD . $SRC_DIR
+ARG SNUDOWN_VERSION
+RUN python setup.py install
+RUN python test_snudown.py
+CMD python -m pip wheel --wheel-dir=$WHEEL_OUTPUT_DIR .
+
+FROM python:3.11
+ENV DEBIAN_FRONTEND noninteractive
+ENV SRC_DIR /opt/snudown
+ENV WHEEL_OUTPUT_DIR /tmp/dist
+RUN mkdir -p $SRC_DIR $WHEEL_OUTPUT_DIR
+WORKDIR $SRC_DIR
+ADD scripts ./scripts
+RUN scripts/ci-setup.sh
+ADD . $SRC_DIR
+ARG SNUDOWN_VERSION
+RUN python setup.py install
+RUN python test_snudown.py
+CMD python -m pip wheel --wheel-dir=$WHEEL_OUTPUT_DIR .
+
+FROM python:3.12
+ENV DEBIAN_FRONTEND noninteractive
+ENV SRC_DIR /opt/snudown
+ENV WHEEL_OUTPUT_DIR /tmp/dist
+RUN mkdir -p $SRC_DIR $WHEEL_OUTPUT_DIR
+WORKDIR $SRC_DIR
+ADD scripts ./scripts
+RUN scripts/ci-setup.sh
+ADD . $SRC_DIR
+ARG SNUDOWN_VERSION
+RUN python setup.py install
+RUN python test_snudown.py
+CMD python -m pip wheel --wheel-dir=$WHEEL_OUTPUT_DIR .

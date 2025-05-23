@@ -388,7 +388,7 @@ sd_autolink__subreddit(
 
 	do {
 		size_t start = link_end;
-		int max_length = 24;
+		size_t max_length = 24;
 
 		/* special case: /r/reddit.com (only subreddit containing '.'). */
 		if ( size >= link_end+10 && strncasecmp((char*)data+link_end, "reddit.com", 10) == 0 ) {

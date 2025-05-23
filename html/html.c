@@ -413,7 +413,8 @@ static void
 rndr_html_tag(struct buf *ob, const struct buf *text, void *opaque,
              char* tagname, char** whitelist, int tagtype)
 {
-    size_t i, x, z, in_str = 0, seen_equals = 0, done = 0, done_attr = 0, reset = 0;
+    size_t i, x, z, seen_equals = 0, done = 0, done_attr = 0, reset = 0;
+    uint8_t in_str = 0;
     struct buf *attr;
     struct buf *value;
     char c;
@@ -471,7 +472,7 @@ rndr_html_tag(struct buf *ob, const struct buf *text, void *opaque,
                 seen_equals = 1;
                 break;
             default:
-                if(seen_equals && in_str || !seen_equals) {
+                if((seen_equals && in_str) || !seen_equals) {
                     bufputc(seen_equals ? value : attr, c);
                 }
                 break;

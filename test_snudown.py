@@ -524,6 +524,7 @@ wiki_cases = {
         '<p><table scope="foo"></p>\n',
 }
 
+
 class SnudownTestCase(unittest.TestCase):
     def __init__(self, renderer=snudown.RENDERER_USERTEXT):
         self.renderer = renderer
@@ -560,6 +561,7 @@ def test_snudown():
         suite.addTest(case)
 
     return suite
+
 
 if __name__ == '__main__':
     runner = unittest.TextTestRunner()

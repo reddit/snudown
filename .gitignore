@@ -8,3 +8,4 @@ src/html_entities.h
 *.o
 /fuzzing/bin
 /fuzzing/testing
+venv*

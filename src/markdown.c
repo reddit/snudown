@@ -26,12 +26,32 @@
 #include <ctype.h>
 #include <stdio.h>
 
-#if __GLIBC__ >= 2 && __GLIBC_MINOR >= 25
+
 #include <sys/random.h>
+
+#if defined __GLIBC_PREREQ && !defined __UCLIBC__
+#define GLIBC_PREREQ(M, m) (__GLIBC_PREREQ(M, m))
 #else
-# define getrandom backport_getrandom
-# include <sys/syscall.h>
+#define GLIBC_PREREQ(M, m) 0
 #endif
+
+#ifndef HAVE_GETRANDOM
+#define HAVE_GETRANDOM (GLIBC_PREREQ(2,25) && __linux__)
+#endif
+
+/*
+ * some systems define `getentropy` instead of `getrandom`
+ */
+ssize_t markdown_getrandom(void *buf, size_t buflen, unsigned int flags)
+{
+#if HAVE_GETRANDOM
+  return getrandom(buf, buflen, flags);
+#else
+  // arc4random_buf is always successful
+  arc4random_buf(buf, buflen);
+  return buflen;
+#endif
+}
 
 #if defined(_WIN32)
 #define strncasecmp	_strnicmp
@@ -138,11 +158,6 @@ uint8_t sip_hash_key[SIP_HASH_KEY_LEN];
 /***************************
  * HELPER FUNCTIONS *
  ***************************/
-
-int backport_getrandom(void *buf, size_t buflen, unsigned int flags)
-{
-	return (int)syscall(SYS_getrandom, buf, buflen, flags);
-}
 
 static inline struct buf *
 rndr_newbuf(struct sd_markdown *rndr, int type)
@@ -2282,7 +2297,7 @@ parse_table_header(
 	size_t *columns,
 	int **column_data)
 {
-	int pipes;
+	size_t pipes;
 	size_t i = 0, col, header_end, under_end;
 
 	pipes = 0;
@@ -2604,6 +2619,9 @@ is_ref(const uint8_t *data, size_t beg, size_t end, size_t *last, struct link_re
 			ref->title = bufnew(title_end - title_offset);
 			bufput(ref->title, data + title_offset, title_end - title_offset);
 		}
+		else {
+			ref->title = 0;
+		}
 	}
 
 	return 1;
@@ -2655,7 +2673,7 @@ sd_markdown_new(
 		return NULL;
 
 	if (!sip_hash_key_init) {
-		if (getrandom(sip_hash_key, SIP_HASH_KEY_LEN, 0) < SIP_HASH_KEY_LEN)
+		if (markdown_getrandom(sip_hash_key, SIP_HASH_KEY_LEN, 0) < SIP_HASH_KEY_LEN)
 			return NULL;
 		sip_hash_key_init = 1;
 	}

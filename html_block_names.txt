@@ -24,3 +24,4 @@ fieldset
 noscript
 blockquote
 span
+mark

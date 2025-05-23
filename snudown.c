@@ -50,7 +50,8 @@ static const unsigned int snudown_default_md_flags =
 	MKDEXT_SUPERSCRIPT |
 	MKDEXT_AUTOLINK |
 	MKDEXT_STRIKETHROUGH |
-	MKDEXT_TABLES;
+	MKDEXT_TABLES |
+	MKDEXT_FENCED_CODE;
 
 static const unsigned int snudown_default_render_flags =
 	HTML_SKIP_HTML |

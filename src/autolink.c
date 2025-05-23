@@ -33,7 +33,7 @@ sd_autolink_issafe(const uint8_t *link, size_t link_len)
 	static const char *valid_uris[] = {
 		"http://", "https://", "ftp://", "mailto://",
 		"/", "git://", "steam://", "irc://", "news://", "mumble://",
-		"ssh://", "ircs://", "ts3server://", "#"
+		"ssh://", "ircs://", "ts3server://", "magnet:", "#"
 	};
 
 	size_t i;
